@@ -1,6 +1,6 @@
 /********************************************
- * SOLO'IA'TICO — CHATBOT LUXE VERSION 1.3
- * Fichier complet prêt à être déployé - 1
+ * SOLO'IA'TICO — CHATBOT LUXE VERSION 1.3 (FIX)
+ * Correction FOUC (chat ouvert au chargement)
  ********************************************/
 
 /* CSS à injecter */
@@ -30,7 +30,6 @@ body {
   border: 1px solid rgba(255,255,255,0.55);
 }
 
-/* Effet hover bouton */
 #openChatBtn:hover {
   box-shadow: 0 0 14px rgba(255,225,170,0.75),
               0 8px 20px rgba(0,0,0,0.32);
@@ -48,7 +47,7 @@ body {
   position: fixed;
   bottom: 90px;
   right: 20px;
-  display: none;
+  display: none !important; /* Force invisibilité */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -177,7 +176,6 @@ body {
   border: 1px solid rgba(255,255,255,0.4);
 }
 
-/* Input */
 #inputZone {
   display: flex;
   gap: 8px;
@@ -212,28 +210,6 @@ body {
   box-shadow: 0 8px 18px rgba(0,0,0,0.25),
               inset 0 1px 4px rgba(255,255,255,0.8);
 }
-
-/* Accueil animation */
-#chatBody .botMsg:first-child {
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 70%;
-  animation: welcomeFade 0.9s ease-out,
-             welcomeGlow 1.4s ease-out;
-}
-
-@keyframes welcomeGlow {
-  0% { box-shadow: 0 0 0 rgba(255,215,160,0); }
-  40% { box-shadow: 0 0 18px rgba(255,215,160,0.55); }
-  100%{ box-shadow: 0 0 0 rgba(255,215,160,0); }
-}
-
-@keyframes welcomeFade {
-  0% { opacity: 0; transform: translateY(10px) scale(0.98); }
-  60%{ opacity: 1; transform: translateY(0px) scale(1.01); }
-  100%{ opacity: 1; transform: translateY(0) scale(1); }
-}
 `;
 
 /* Inject CSS */
@@ -241,7 +217,7 @@ const style = document.createElement("style");
 style.innerHTML = css;
 document.head.appendChild(style);
 
-/* HTML to inject */
+/* HTML à injecter */
 const html = `
 <div id="openChatBtn">
   <img src="https://soloatico.es/bot2026/images/avatar.png"
@@ -249,7 +225,7 @@ const html = `
        filter: drop-shadow(0 0 4px rgba(0,0,0,0.6));" />
 </div>
 
-<div id="chatWindow" style="display:none;">
+<div id="chatWindow">
   <div id="chatHeader"
        style="background:url('https://soloatico.es/bot2026/images/header.jpg')
        center/cover no-repeat;
@@ -316,9 +292,11 @@ const html = `
 </div>
 `;
 
-const wrapper = document.createElement("div");
-wrapper.innerHTML = html;
-document.body.appendChild(wrapper);
+/* Injection HTML */
+document.body.insertAdjacentHTML("beforeend", html);
+
+/* FOUC FIX : invisible immédiatement */
+document.getElementById("chatWindow").style.display = "none";
 
 /* Script */
 const openBtn = document.getElementById("openChatBtn");
@@ -328,10 +306,12 @@ const input = document.getElementById("userInput");
 const bodyEl = document.getElementById("chatBody");
 const typing = document.getElementById("typing");
 
+/* Ouverture */
 openBtn.onclick = () => {
   chatWin.style.display = "flex";
 };
 
+/* Envoi */
 sendBtn.onclick = () => sendMessage();
 input.addEventListener("keydown", e => {
   if (e.key === "Enter") sendMessage();
