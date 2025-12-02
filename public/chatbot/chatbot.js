@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.3.1 (Architecture B) - Mise à jour Liens
+ * Version 1.3.1 (Architecture B) - chemin relatif
  * Chargement HTML + CSS + JS sans ouverture automatique
  ****************************************************/
 
@@ -14,7 +14,7 @@
 function loadCSS() {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://soloiatico-2026.vercel.app/chatbot/chatbot.css";
+    link.href = "/chatbot/chatbot.css";   // chemin relatif
     document.head.appendChild(link);
 }
 
@@ -22,7 +22,7 @@ function loadCSS() {
    * 2) Charger le template HTML
    ****************************************************/
 async function loadHTML() {
-    const response = await fetch("https://soloiatico-2026.vercel.app/chatbot/chatbot.html");
+    const response = await fetch("/chatbot/chatbot.html");  // chemin relatif
     return await response.text();
 }
 
