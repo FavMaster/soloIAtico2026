@@ -42,6 +42,10 @@ async function loadHTML() {
     // Injecter dans la page
     document.body.insertAdjacentHTML("beforeend", html);
 
+// Attendre que le DOM injecté soit réellement disponible
+await new Promise(requestAnimationFrame);
+
+
     console.log("— HTML + CSS injectés");
 
     // Sélectionner les éléments
@@ -51,6 +55,12 @@ async function loadHTML() {
     const input = document.getElementById("userInput");
     const bodyEl = document.getElementById("chatBody");
     const typing = document.getElementById("typing");
+
+if (!chatWin || !openBtn) {
+  console.error("❌ Chatbot non initialisé : chatWindow ou bouton introuvable");
+  return;
+}
+
 
     /****************************************************
      * 4) Garantir que le chatbot est FERMÉ au chargement
