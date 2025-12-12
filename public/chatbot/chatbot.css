@@ -25,7 +25,10 @@ body {
   justify-content: center;
   box-shadow: 0 6px 18px rgba(0,0,0,0.28);
   border: 1px solid rgba(255,255,255,0.55);
+
+  z-index: 99999; /* 🔥 AU-DESSUS DU MENU LANGUE */
 }
+
 
 #openChatBtn:hover {
   box-shadow: 0 0 14px rgba(255,225,170,0.75),
@@ -44,6 +47,10 @@ body {
   position: fixed;
   bottom: 90px;
   right: 20px;
+  z-index: 99998; /* juste sous le bouton */
+
+
+
 
   /* FIX : fenêtre toujours fermée au chargement */
   display: none;
