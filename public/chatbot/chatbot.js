@@ -16,7 +16,7 @@
 function loadCSS() {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://solobotatico2026.vercel.app/chatbot/chatbot.css";   // chemin relatif
+    link.href = "https://solobotatico2026.vercel.app/chatbot/chatbot.css";   // chemin directe
     document.head.appendChild(link);
 }
 
@@ -24,7 +24,7 @@ function loadCSS() {
    * 2) Charger le template HTML
    ****************************************************/
 async function loadHTML() {
-    const response = await fetch("https://solobotatico2026.vercel.app/chatbot/chatbot.html");  // chemin relatif
+    const response = await fetch("https://solobotatico2026.vercel.app/chatbot/chatbot.html");  // chemin directe
     return await response.text();
 }
 
