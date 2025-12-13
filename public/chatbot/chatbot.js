@@ -170,40 +170,41 @@ async function loadKB(lang, section, file) {
   }
 }
 
-    /****************************************************
-     * 6B) Fonction d’envoi
-     ****************************************************/
-    async function sendMessage() {
-      if (!input.value.trim()) return;
+/****************************************************
+ * 6) Fonction d’envoi
+ ****************************************************/
+async function sendMessage() {
+  if (!input.value.trim()) return;
 
-      const bubble = document.createElement("div");
-      bubble.className = "msg userMsg";
-      bubble.textContent = input.value;
-      bodyEl.appendChild(bubble);
+  // Message utilisateur
+  const bubble = document.createElement("div");
+  bubble.className = "msg userMsg";
+  bubble.textContent = input.value;
+  bodyEl.appendChild(bubble);
 
-      input.value = "";
-      bodyEl.scrollTop = bodyEl.scrollHeight;
+  input.value = "";
+  bodyEl.scrollTop = bodyEl.scrollHeight;
 
-      typing.style.display = "flex";
+  // Typing
+  typing.style.display = "flex";
 
-      setTimeout(() => {
-        typing.style.display = "none";
+  // Charger la KB (test : présentation FR)
+  const kbText = await loadKB(
+    "fr",
+    "01_presentation",
+    "presentation-generale.txt"
+  );
 
-        const bot = document.createElement("div");
-        bot.className = "msg botMsg";
-        const kbText = await loadKB(
-  "fr",
-  "01_presentation",
-  "presentation-generale.txt"
-);
+  typing.style.display = "none";
 
-bot.textContent = kbText.substring(0, 600) + "…";
+  // Message bot
+  const bot = document.createElement("div");
+  bot.className = "msg botMsg";
+  bot.textContent = kbText.substring(0, 600) + "…";
+  bodyEl.appendChild(bot);
 
-        bodyEl.appendChild(bot);
-
-        bodyEl.scrollTop = bodyEl.scrollHeight;
-
-      }, 1200);
+  bodyEl.scrollTop = bodyEl.scrollHeight;
+}, 1200);
     }
 
     sendBtn.addEventListener("click", sendMessage);
