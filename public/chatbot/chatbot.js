@@ -45,6 +45,23 @@ async function loadHTML() {
 // Attendre que le DOM injecté soit réellement disponible
 await new Promise(requestAnimationFrame);
 
+const waLaurent = document.getElementById("waLaurent");
+const waSophia  = document.getElementById("waSophia");
+
+if (waLaurent) {
+  waLaurent.addEventListener("click", () => {
+    window.open("https://wa.me/34621210642", "_blank");
+  });
+}
+
+if (waSophia) {
+  waSophia.addEventListener("click", () => {
+    window.open("https://wa.me/34621128303", "_blank");
+  });
+}
+
+
+
 
     console.log("— HTML + CSS injectés");
 
