@@ -151,11 +151,29 @@ document.addEventListener("click", (e) => {
   }
 });
 
+/****************************************************
+ *  6A) KB LOADER — Chargement dynamique de fichiers texte
+ ****************************************************/
+async function loadKB(lang, section, file) {
+  try {
+    const url = `https://solobotatico2026.vercel.app/kb/${lang}/${section}/${file}`;
+    console.log("📚 Chargement KB :", url);
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("KB introuvable");
+
+    return await response.text();
+
+  } catch (err) {
+    console.error("❌ Erreur KB :", err);
+    return "Désolé, cette information n’est pas encore disponible.";
+  }
+}
 
     /****************************************************
-     * 6) Fonction d’envoi
+     * 6B) Fonction d’envoi
      ****************************************************/
-    function sendMessage() {
+    async function sendMessage() {
       if (!input.value.trim()) return;
 
       const bubble = document.createElement("div");
@@ -173,7 +191,14 @@ document.addEventListener("click", (e) => {
 
         const bot = document.createElement("div");
         bot.className = "msg botMsg";
-        bot.textContent = "(Réponse simulée)";
+        const kbText = await loadKB(
+  "fr",
+  "01_presentation",
+  "presentation-generale.txt"
+);
+
+bot.textContent = kbText.substring(0, 600) + "…";
+
         bodyEl.appendChild(bot);
 
         bodyEl.scrollTop = bodyEl.scrollHeight;
