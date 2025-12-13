@@ -135,36 +135,44 @@ async function loadKB(lang, section, file) {
 }
 
 /****************************************************
- * 6) Router KB
+ * 6) Router KB — CHEMIN ABSOLU VERCEL
  ****************************************************/
-
 function resolveKBPath(message, lang = "fr") {
   const text = message.toLowerCase();
 
-  if (text.includes("neus")) return `/kb/${lang}/02_suites/suite-neus.txt`;
-  if (text.includes("bourlard")) return `/kb/${lang}/02_suites/suite-bourlardes.txt`;
-  if (text.includes("blue")) return `/kb/${lang}/02_suites/suite-blue-patio.txt`;
+  if (text.includes("neus"))
+    return `${KB_BASE_URL}/kb/${lang}/02_suites/suite-neus.txt`;
+
+  if (text.includes("bourlard"))
+    return `${KB_BASE_URL}/kb/${lang}/02_suites/suite-bourlardes.txt`;
+
+  if (text.includes("blue"))
+    return `${KB_BASE_URL}/kb/${lang}/02_suites/suite-blue-patio.txt`;
 
   if (text.includes("bateau") || text.includes("tintorera"))
-    return `/kb/${lang}/03_services/tintorera-bateau.txt`;
+    return `${KB_BASE_URL}/kb/${lang}/03_services/tintorera-bateau.txt`;
 
   if (text.includes("reiki"))
-    return `/kb/${lang}/03_services/reiki.txt`;
+    return `${KB_BASE_URL}/kb/${lang}/03_services/reiki.txt`;
 
   if (text.includes("piscine"))
-    return `/kb/${lang}/03_services/piscine-rooftop.txt`;
+    return `${KB_BASE_URL}/kb/${lang}/03_services/piscine-rooftop.txt`;
 
   if (text.includes("petit"))
-    return `/kb/${lang}/03_services/petit-dejeuner.txt`;
+    return `${KB_BASE_URL}/kb/${lang}/03_services/petit-dejeuner.txt`;
 
   if (text.includes("que faire") || text.includes("escala"))
-    return `/kb/${lang}/04_que-faire/que-faire-escala.txt`;
+    return `${KB_BASE_URL}/kb/${lang}/04_que-faire/que-faire-escala.txt`;
 
   if (text.includes("restaurant") || text.includes("manger"))
-    return `/kb/${lang}/05_solotogo/guide-client-solotogo.txt`;
+    return `${KB_BASE_URL}/kb/${lang}/05_solotogo/guide-client-solotogo.txt`;
 
-  if (text.includes("check") || text.includes("heure") || text.includes("adresse"))
-    return `/kb/${lang}/06_infos-pratiques/infos-pratiques.txt`;
+  if (
+    text.includes("check") ||
+    text.includes("heure") ||
+    text.includes("adresse")
+  )
+    return `${KB_BASE_URL}/kb/${lang}/06_infos-pratiques/infos-pratiques.txt`;
 
   return null;
 }
@@ -228,6 +236,10 @@ async function sendMessage() {
   }
 
 
+/****************************************************
+ * BASE URL KB (Vercel)
+ ****************************************************/
+const KB_BASE_URL = "https://solobotatico2026.vercel.app";
 
 
 
