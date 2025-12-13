@@ -219,7 +219,7 @@ function detectLanguage(message = "") {
 
 
 /****************************************************
- * 6) Fonction d’envoi (KB connectée)
+ * 7.2) Fonction d’envoi — Réponse courte / détaillée
  ****************************************************/
 async function sendMessage() {
   if (!input.value.trim()) return;
@@ -227,45 +227,61 @@ async function sendMessage() {
   const userText = input.value;
 
   // Message utilisateur
-  const bubble = document.createElement("div");
-  bubble.className = "msg userMsg";
-  bubble.textContent = userText;
-  bodyEl.appendChild(bubble);
+  const userBubble = document.createElement("div");
+  userBubble.className = "msg userMsg";
+  userBubble.textContent = userText;
+  bodyEl.appendChild(userBubble);
 
   input.value = "";
   bodyEl.scrollTop = bodyEl.scrollHeight;
 
-  // Typing
   typing.style.display = "flex";
 
   const lang = detectLanguage(userText);
   const kbPath = resolveKBPath(userText, lang);
 
-  let reply = "";
+  let shortText = "";
+  let fullText = "";
 
   if (!kbPath) {
-    reply =
+    shortText =
       "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou que faire à L’Escala 😊";
   } else {
     try {
       console.log("📚 Chargement KB :", kbPath);
       const response = await fetch(kbPath);
-      const text = await response.text();
-      reply = text.substring(0, 600) + "…";
+      fullText = await response.text();
+      shortText = fullText.substring(0, 300) + "…";
     } catch (err) {
-      reply = "Désolé, cette information n’est pas encore disponible.";
+      shortText = "Désolé, cette information n’est pas encore disponible.";
     }
   }
 
   typing.style.display = "none";
 
-  const bot = document.createElement("div");
-  bot.className = "msg botMsg";
-  bot.textContent = reply;
-  bodyEl.appendChild(bot);
+  // Message bot
+  const botBubble = document.createElement("div");
+  botBubble.className = "msg botMsg";
+  botBubble.textContent = shortText;
 
+  // Bouton "Lire la suite" si contenu long
+  if (fullText.length > 350) {
+    const moreBtn = document.createElement("button");
+    moreBtn.className = "readMoreBtn";
+    moreBtn.textContent = "Lire la suite";
+
+    moreBtn.addEventListener("click", () => {
+      botBubble.textContent = fullText;
+      moreBtn.remove();
+    });
+
+    botBubble.appendChild(moreBtn);
+  }
+
+  bodyEl.appendChild(botBubble);
   bodyEl.scrollTop = bodyEl.scrollHeight;
 }
+
 
     sendBtn.addEventListener("click", sendMessage);
     input.addEventListener("keydown", e => {
