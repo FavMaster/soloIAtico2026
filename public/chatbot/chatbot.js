@@ -66,6 +66,10 @@ if (!chatWin || !openBtn) {
  * TEST KB — Chargement présentation FR
  ****************************************************/
 console.log("🧪 TEST KB : fonction appelée");
+// Ouvrir temporairement le chatbot pour voir le test KB
+
+chatWin.style.display = "flex";
+
 async function loadKBTest() {
   try {
     const response = await fetch(
@@ -100,7 +104,7 @@ loadKBTest();
     /****************************************************
      * 4) Garantir que le chatbot est FERMÉ au chargement
      ****************************************************/
-    chatWin.style.display = "none";
+//    chatWin.style.display = "none";
 
     /****************************************************
      * 5) Ouvrir / fermer seulement au clic - Toggle
