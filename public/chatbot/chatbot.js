@@ -10,6 +10,24 @@
 
   console.log("Solo’IA’tico Chatbot v1.3.1 — Initialisation…");
 
+/****************************************************
+ * BASE URL KB (Vercel)
+ ****************************************************/
+const KB_BASE_URL = "https://solobotatico2026.vercel.app";
+
+/****************************************************
+ * Langue active du chatbot
+ ****************************************************/
+const currentLang =
+  document.documentElement.lang?.toLowerCase().startsWith("es") ? "es" :
+  document.documentElement.lang?.toLowerCase().startsWith("en") ? "en" :
+  document.documentElement.lang?.toLowerCase().startsWith("nl") ? "nl" :
+  document.documentElement.lang?.toLowerCase().startsWith("ca") ? "cat" :
+  "fr";
+
+console.log("🌍 Langue chatbot :", currentLang);
+
+
   /****************************************************
    * 1) Charger le fichier CSS
    ****************************************************/
@@ -177,54 +195,94 @@ function resolveKBPath(message, lang = "fr") {
   return null;
 }
 
+/****************************************************
+ * Détection automatique de la langue
+ ****************************************************/
+function detectLanguage() {
+  // 1) Langue du HTML <html lang="xx">
+  const htmlLang = document.documentElement.lang?.toLowerCase();
+
+  if (htmlLang) {
+    if (htmlLang.startsWith("fr")) return "fr";
+    if (htmlLang.startsWith("es")) return "es";
+    if (htmlLang.startsWith("en")) return "en";
+    if (htmlLang.startsWith("nl")) return "nl";
+    if (htmlLang.startsWith("ca")) return "cat";
+  }
+
+  // 2) Langue du navigateur
+  const navLang = navigator.language.toLowerCase();
+
+  if (navLang.startsWith("fr")) return "fr";
+  if (navLang.startsWith("es")) return "es";
+  if (navLang.startsWith("en")) return "en";
+  if (navLang.startsWith("nl")) return "nl";
+  if (navLang.startsWith("ca")) return "cat";
+
+  // 3) Fallback
+  return "fr";
+}
+
+// Langue active du chatbot
+const currentLang = detectLanguage();
+
+console.log("🌍 Langue détectée :", currentLang);
+
 
 
 /****************************************************
- * 6) Fonction d’envoi — VERSION STABLE KB
+ * 6) Fonction d’envoi (KB connectée)
  ****************************************************/
 async function sendMessage() {
   if (!input.value.trim()) return;
 
-  /* Message utilisateur */
-  const userBubble = document.createElement("div");
-  userBubble.className = "msg userMsg";
-  userBubble.textContent = input.value;
-  bodyEl.appendChild(userBubble);
+  const userText = input.value;
 
-  const userMessage = input.value;
+  // Message utilisateur
+  const bubble = document.createElement("div");
+  bubble.className = "msg userMsg";
+  bubble.textContent = userText;
+  bodyEl.appendChild(bubble);
+
   input.value = "";
   bodyEl.scrollTop = bodyEl.scrollHeight;
 
-  /* Typing */
+  // Typing
   typing.style.display = "flex";
 
-  /* Résolution KB */
-  const kbPath = resolveKBPath(userMessage, "fr");
+  // Résolution KB
+  const kbPath = resolveKBPath(userText, currentLang);
 
-  /* Bulle bot (UNE SEULE FOIS) */
-  const botBubble = document.createElement("div");
-  botBubble.className = "msg botMsg";
+  let botText = "";
 
   try {
     if (!kbPath) {
-      botBubble.textContent =
+      botText =
         "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou que faire à L’Escala 😊";
     } else {
-      console.log("📚 Chargement KB :", kbPath);
-      const response = await fetch(kbPath);
+      const response = await fetch(
+        `https://solobotatico2026.vercel.app${kbPath}`
+      );
+
+      if (!response.ok) throw new Error("KB introuvable");
+
       const text = await response.text();
-      botBubble.textContent = text.substring(0, 600) + "…";
+      botText = text.substring(0, 600) + "…";
     }
-  } catch (err) {
-    botBubble.textContent =
-      "Désolé, je rencontre un petit souci technique. Pouvez-vous reformuler ?";
-    console.error(err);
+  } catch (e) {
+    botText = "Désolé, je n’arrive pas à accéder à cette information pour le moment.";
   }
 
   typing.style.display = "none";
-  bodyEl.appendChild(botBubble);
+
+  const bot = document.createElement("div");
+  bot.className = "msg botMsg";
+  bot.textContent = botText;
+  bodyEl.appendChild(bot);
+
   bodyEl.scrollTop = bodyEl.scrollHeight;
 }
+
 
 
     sendBtn.addEventListener("click", sendMessage);
