@@ -294,12 +294,6 @@ async function sendMessage() {
   }
 
 
-/****************************************************
- * BASE URL KB (Vercel)
- ****************************************************/
-const KB_BASE_URL = "https://solobotatico2026.vercel.app";
-
-
 
   /****************************************************
    * 7) Lancer tout quand la page est chargée
