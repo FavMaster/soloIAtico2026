@@ -80,42 +80,6 @@ if (!chatWin || !openBtn) {
 
 
 /****************************************************
- * TEST KB — Chargement présentation FR
- ****************************************************/
-console.log("🧪 TEST KB : fonction appelée");
-
-async function loadKBTest() {
-  try {
-    const response = await fetch(
-      "https://solobotatico2026.vercel.app/kb/fr/01_presentation/presentation-generale.txt"
-    );
-
-    if (!response.ok) {
-      throw new Error("Fichier KB introuvable");
-    }
-
-    const text = await response.text();
-
-    const botBubble = document.createElement("div");
-    botBubble.className = "msg botMsg";
-    botBubble.textContent =
-      text.substring(0, 400) + "…";
-
-    bodyEl.appendChild(botBubble);
-    bodyEl.scrollTop = bodyEl.scrollHeight;
-
-    console.log("KB chargée avec succès");
-
-  } catch (err) {
-    console.error("Erreur chargement KB :", err);
-  }
-}
-
-/* Lancer le test */
-loadKBTest();
-
-
-/****************************************************
  * 4) Garantir que le chatbot est FERMÉ au chargement
  ****************************************************/
 chatWin.style.display = "none";
