@@ -204,7 +204,7 @@ async function sendMessage() {
   bodyEl.appendChild(bot);
 
   bodyEl.scrollTop = bodyEl.scrollHeight;
-}
+}, 1200);
     }
 
     sendBtn.addEventListener("click", sendMessage);
