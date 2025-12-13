@@ -101,19 +101,17 @@ async function loadKBTest() {
 loadKBTest();
 
 
- /****************************************************
- * 4) État du chatbot
+/****************************************************
+ * 4) Garantir que le chatbot est FERMÉ au chargement
  ****************************************************/
-let isOpen = false;
-
-// Toujours fermé au départ
 chatWin.style.display = "none";
+isOpen = false;
 
 /****************************************************
  * 5) Ouvrir / fermer via bouton (toggle)
  ****************************************************/
 openBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // empêche le clic extérieur immédiat
+  e.stopPropagation();
 
   if (isOpen) {
     chatWin.style.display = "none";
@@ -138,6 +136,7 @@ document.addEventListener("click", (e) => {
     isOpen = false;
   }
 });
+
 
     /****************************************************
      * 6) Fonction d’envoi
