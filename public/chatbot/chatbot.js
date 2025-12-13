@@ -45,6 +45,18 @@ async function loadHTML() {
 // Attendre que le DOM injecté soit réellement disponible
 await new Promise(requestAnimationFrame);
 
+    console.log("— HTML + CSS injectés");
+
+    // Sélectionner les éléments
+    const chatWin = document.getElementById("chatWindow");
+    const openBtn = document.getElementById("openChatBtn");
+    const sendBtn = document.getElementById("sendBtn");
+    const input = document.getElementById("userInput");
+    const bodyEl = document.getElementById("chatBody");
+    const typing = document.getElementById("typing");
+
+let isOpen = false;
+
 const waLaurent = document.getElementById("waLaurent");
 const waSophia  = document.getElementById("waSophia");
 
@@ -59,21 +71,6 @@ if (waSophia) {
     window.open("https://wa.me/34621128303", "_blank");
   });
 }
-
-
-
-
-    console.log("— HTML + CSS injectés");
-
-    // Sélectionner les éléments
-    const chatWin = document.getElementById("chatWindow");
-    const openBtn = document.getElementById("openChatBtn");
-    const sendBtn = document.getElementById("sendBtn");
-    const input = document.getElementById("userInput");
-    const bodyEl = document.getElementById("chatBody");
-    const typing = document.getElementById("typing");
-
-let isOpen = false;
 
 
 if (!chatWin || !openBtn) {
