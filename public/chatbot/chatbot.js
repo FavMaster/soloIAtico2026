@@ -73,7 +73,7 @@ chatWin.style.display = "flex";
 async function loadKBTest() {
   try {
     const response = await fetch(
-      "/kb/fr/01_presentation/presentation-generale.txt"
+      "https://solobotatico2026.vercel.app/kb/fr/01_presentation/presentation-generale.txt"
     );
 
     if (!response.ok) {
