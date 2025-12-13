@@ -175,6 +175,26 @@ document.addEventListener("click", (e) => {
     console.log("— Chatbot initialisé (fermé par défaut)");
   }
 
+<div class="whatsappBtns">
+
+  <div class="waBtn" id="waLaurent">
+    <img src="https://soloatico.es/bot2026/images/whatsapp_solo.png"
+         style="width:20px;height:20px;vertical-align:middle;" />
+    Laurent
+  </div>
+
+  <div class="waBtn" id="waSophia">
+    <img src="https://soloatico.es/bot2026/images/whatsapp_solo.png"
+         style="width:20px;height:20px;vertical-align:middle;" />
+    Sophia
+  </div>
+
+</div>
+
+
+
+
+
   /****************************************************
    * 7) Lancer tout quand la page est chargée
    ****************************************************/
