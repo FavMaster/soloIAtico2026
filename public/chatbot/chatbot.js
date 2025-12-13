@@ -172,52 +172,52 @@ function resolveKBPath(message, lang = "fr") {
 
 
 /****************************************************
- * 6) Fonction d’envoi
+ * 6) Fonction d’envoi — VERSION STABLE KB
  ****************************************************/
 async function sendMessage() {
   if (!input.value.trim()) return;
 
-  // Message utilisateur
-  const bubble = document.createElement("div");
-  bubble.className = "msg userMsg";
-  bubble.textContent = input.value;
-  bodyEl.appendChild(bubble);
+  /* Message utilisateur */
+  const userBubble = document.createElement("div");
+  userBubble.className = "msg userMsg";
+  userBubble.textContent = input.value;
+  bodyEl.appendChild(userBubble);
 
+  const userMessage = input.value;
   input.value = "";
   bodyEl.scrollTop = bodyEl.scrollHeight;
 
-  // Typing
+  /* Typing */
   typing.style.display = "flex";
 
- const kbPath = resolveKBPath(input.value, "fr");
+  /* Résolution KB */
+  const kbPath = resolveKBPath(userMessage, "fr");
 
-typing.style.display = "none";
+  /* Bulle bot (UNE SEULE FOIS) */
+  const botBubble = document.createElement("div");
+  botBubble.className = "msg botMsg";
 
-const bot = document.createElement("div");
-bot.className = "msg botMsg";
-
-if (!kbPath) {
-  bot.textContent = "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou que faire à L’Escala 😊";
-} else {
-  const response = await fetch(kbPath);
-  const text = await response.text();
-  bot.textContent = text.substring(0, 600) + "…";
-}
-
-bodyEl.appendChild(bot);
-bodyEl.scrollTop = bodyEl.scrollHeight;
-
+  try {
+    if (!kbPath) {
+      botBubble.textContent =
+        "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou que faire à L’Escala 😊";
+    } else {
+      console.log("📚 Chargement KB :", kbPath);
+      const response = await fetch(kbPath);
+      const text = await response.text();
+      botBubble.textContent = text.substring(0, 600) + "…";
+    }
+  } catch (err) {
+    botBubble.textContent =
+      "Désolé, je rencontre un petit souci technique. Pouvez-vous reformuler ?";
+    console.error(err);
+  }
 
   typing.style.display = "none";
-
-  // Message bot
-  const bot = document.createElement("div");
-  bot.className = "msg botMsg";
-  bot.textContent = kbText.substring(0, 600) + "…";
-  bodyEl.appendChild(bot);
-
+  bodyEl.appendChild(botBubble);
   bodyEl.scrollTop = bodyEl.scrollHeight;
 }
+
 
     sendBtn.addEventListener("click", sendMessage);
     input.addEventListener("keydown", e => {
