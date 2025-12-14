@@ -479,7 +479,7 @@ async function sendMessage() {
   typing.style.display = "none";
   bodyEl.appendChild(bot);
   bodyEl.scrollTop = bodyEl.scrollHeight;
-}
+
 
 
     sendBtn.addEventListener("click", sendMessage);
