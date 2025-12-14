@@ -96,6 +96,34 @@ if (!chatWin || !openBtn) {
   return;
 }
 
+function detectIntent(message) {
+  const text = message.toLowerCase();
+
+  // INTENTION : liste des hébergements
+  if (
+    text.match(
+      /\b(suite|suites|chambre|chambres|hébergement|logement|
+         room|rooms|accommodation|
+         habitacion|habitaciones|
+         kamer|kamers|
+         habitació|habitacions)\b/x
+    )
+  ) {
+    return "list_suites";
+  }
+
+  // INTENTION : aide générale
+  if (
+    text.match(
+      /\b(aide|help|ayuda|hulpm|que peux|que faire|what can)\b/x
+    )
+  ) {
+    return "help";
+  }
+
+  return "specific";
+}
+
 
 /****************************************************
  * 4) Garantir que le chatbot est FERMÉ au chargement
@@ -316,15 +344,13 @@ function parseKB(text) {
 }
 
 
-
-
 /****************************************************
- * 7.4) Fonction d’envoi — Réponse courte + KB élégante
+ * 7.4.1) Fonction d’envoi — Intentions + KB intelligente (FIX)
  ****************************************************/
 async function sendMessage() {
   if (!input.value.trim()) return;
 
-  const userText = input.value;
+  const userText = input.value.trim();
 
   /* Message utilisateur */
   const userBubble = document.createElement("div");
@@ -338,22 +364,62 @@ async function sendMessage() {
   /* Typing */
   typing.style.display = "flex";
 
-  /* Détection */
+  /* Détections */
   const lang = detectLanguage(userText);
+  const intent = detectIntent(userText);
   const topic = detectTopic(userText);
   const kbPath = resolveKBPath(userText, lang);
 
-  /* Préparer la bulle bot */
+  /* Message bot */
   const bot = document.createElement("div");
   bot.className = "msg botMsg";
 
+  /****************************************************
+   * 🔴 PRIORITÉ ABSOLUE — LISTE DES SUITES
+   * (même si intent est mal détectée)
+   ****************************************************/
+  if (
+    intent === "list_suites" ||
+    (topic === "suite" && !kbPath)
+  ) {
+    typing.style.display = "none";
+
+    bot.innerHTML = `
+      <b>Nous proposons trois hébergements au Solo Ático ✨</b><br><br>
+      • <b>Suite Neus</b> – lumineuse, vue port & mer<br>
+      • <b>Suite Bourlardes</b> – terrasse privée sans vis-à-vis<br>
+      • <b>Chambre Blue Patio</b> – cocon calme côté patio<br><br>
+      Souhaitez-vous que je vous détaille l’un d’eux ?
+    `;
+
+    bodyEl.appendChild(bot);
+    bodyEl.scrollTop = bodyEl.scrollHeight;
+    return; // ⬅️ CRUCIAL
+  }
+
+  /****************************************************
+   * INTENTION : AIDE GÉNÉRALE
+   ****************************************************/
+  if (intent === "help") {
+    typing.style.display = "none";
+
+    bot.textContent =
+      "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou vous suggérer des activités à L’Escala 😊";
+
+    bodyEl.appendChild(bot);
+    bodyEl.scrollTop = bodyEl.scrollHeight;
+    return;
+  }
+
+  /****************************************************
+   * INTENTION : SUJET PRÉCIS → KB
+   ****************************************************/
   try {
-    /* 1️⃣ Réponse courte concierge */
+    /* Intro courte premium */
     const intro = document.createElement("div");
     intro.innerHTML = `<b>${getShortAnswer(topic, lang)}</b><br><br>`;
     bot.appendChild(intro);
 
-    /* 2️⃣ KB */
     if (kbPath) {
       console.log("📚 Chargement KB :", kbPath);
 
@@ -363,7 +429,7 @@ async function sendMessage() {
       const rawText = await response.text();
       const kb = parseKB(rawText); // { short, long }
 
-      /* Texte court KB */
+      /* Résumé KB */
       if (kb.short) {
         const shortText = document.createElement("div");
         shortText.textContent = kb.short;
@@ -377,28 +443,26 @@ async function sendMessage() {
         moreBtn.textContent = "Voir la description complète";
 
         moreBtn.addEventListener("click", (e) => {
-          e.stopPropagation(); // ⚠️ empêche fermeture du chatbot
+          e.stopPropagation();
 
           const longText = document.createElement("div");
           longText.className = "kbLongText";
           longText.textContent = kb.long;
-longText.style.whiteSpace = "pre-line";
 
           bot.appendChild(document.createElement("br"));
           bot.appendChild(longText);
-
           moreBtn.remove();
+
           bodyEl.scrollTop = bodyEl.scrollHeight;
         });
 
         bot.appendChild(document.createElement("br"));
         bot.appendChild(moreBtn);
       }
-
     } else {
       bot.appendChild(
         document.createTextNode(
-          "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou que faire à L’Escala 😊"
+          "Pouvez-vous préciser votre demande ? Je serai ravi de vous aider 😊"
         )
       );
     }
@@ -413,6 +477,75 @@ longText.style.whiteSpace = "pre-line";
   bodyEl.appendChild(bot);
   bodyEl.scrollTop = bodyEl.scrollHeight;
 }
+
+
+  /****************************************************
+   * INTENTION : SUJET PRÉCIS → KB
+   ****************************************************/
+  try {
+    /* Intro courte premium */
+    const intro = document.createElement("div");
+    intro.innerHTML = `<b>${getShortAnswer(topic, lang)}</b><br><br>`;
+    bot.appendChild(intro);
+
+    if (kbPath) {
+      console.log("📚 Chargement KB :", kbPath);
+
+      const response = await fetch(kbPath);
+      if (!response.ok) throw new Error("KB introuvable");
+
+      const rawText = await response.text();
+      const kb = parseKB(rawText); // { short, long }
+
+      /* Résumé KB */
+      if (kb.short) {
+        const shortText = document.createElement("div");
+        shortText.textContent = kb.short;
+        bot.appendChild(shortText);
+      }
+
+      /* Bouton description complète */
+      if (kb.long) {
+        const moreBtn = document.createElement("button");
+        moreBtn.className = "kbMoreBtn";
+        moreBtn.textContent = "Voir la description complète";
+
+        moreBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+
+          const longText = document.createElement("div");
+          longText.className = "kbLongText";
+          longText.textContent = kb.long;
+
+          bot.appendChild(document.createElement("br"));
+          bot.appendChild(longText);
+          moreBtn.remove();
+
+          bodyEl.scrollTop = bodyEl.scrollHeight;
+        });
+
+        bot.appendChild(document.createElement("br"));
+        bot.appendChild(moreBtn);
+      }
+    } else {
+      bot.appendChild(
+        document.createTextNode(
+          "Pouvez-vous préciser votre demande ? Je serai ravi de vous aider 😊"
+        )
+      );
+    }
+
+  } catch (err) {
+    console.error("❌ Erreur chatbot :", err);
+    bot.textContent =
+      "Désolé, une erreur est survenue. Pouvez-vous reformuler votre demande ?";
+  }
+
+  typing.style.display = "none";
+  bodyEl.appendChild(bot);
+  bodyEl.scrollTop = bodyEl.scrollHeight;
+}
+
 
 
 
