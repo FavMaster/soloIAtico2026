@@ -7,7 +7,7 @@
 // Force Vercel update 2025-02-25
 
 
-(function() {
+function() {
 
   console.log("Solo’IA’tico Chatbot v1.4-debug — Initialisation…");
 
