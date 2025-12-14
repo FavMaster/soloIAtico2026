@@ -349,15 +349,20 @@ async function sendMessage() {
         moreBtn.className = "kbMoreBtn";
         moreBtn.textContent = "Voir la description complète";
 
-        moreBtn.addEventListener("click", () => {
-          const longText = document.createElement("div");
-          longText.className = "kbLongText";
-          longText.textContent = kb.long;
-          bot.appendChild(document.createElement("br"));
-          bot.appendChild(longText);
-          moreBtn.remove();
-          bodyEl.scrollTop = bodyEl.scrollHeight;
-        });
+     moreBtn.addEventListener("click", (e) => {
+  e.stopPropagation(); // ⬅️ LIGNE MAGIQUE
+
+  const longText = document.createElement("div");
+  longText.className = "kbLongText";
+  longText.textContent = kb.long;
+
+  bot.appendChild(document.createElement("br"));
+  bot.appendChild(longText);
+
+  moreBtn.remove();
+  bodyEl.scrollTop = bodyEl.scrollHeight;
+});
+
 
         bot.appendChild(document.createElement("br"));
         bot.appendChild(moreBtn);
