@@ -382,6 +382,7 @@ async function sendMessage() {
           const longText = document.createElement("div");
           longText.className = "kbLongText";
           longText.textContent = kb.long;
+longText.style.whiteSpace = "pre-line";
 
           bot.appendChild(document.createElement("br"));
           bot.appendChild(longText);
