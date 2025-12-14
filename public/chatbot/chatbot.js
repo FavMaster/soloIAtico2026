@@ -150,6 +150,28 @@
     };
   }
 
+/****************************************************
+ * Mise en forme élégante du texte LONG
+ ****************************************************/
+function formatLongText(text) {
+  // Découpe par lignes ou phrases longues
+  const lines = text
+    .split(/\n|•|- /)
+    .map(l => l.trim())
+    .filter(l => l.length > 30);
+
+  // Limite raisonnable (évite le roman)
+  const selected = lines.slice(0, 6);
+
+  return `
+    <div class="kbLongWrapper">
+      <ul class="kbLongList">
+        ${selected.map(l => `<li>${l}</li>`).join("")}
+      </ul>
+    </div>
+  `;
+}
+
   /****************************************************
    * INITIALISATION CHATBOT
    ****************************************************/
