@@ -101,22 +101,14 @@ function detectIntent(message) {
 
   // INTENTION : liste des hébergements
   if (
-    text.match(
-      /\b(suite|suites|chambre|chambres|hébergement|logement|
-         room|rooms|accommodation|
-         habitacion|habitaciones|
-         kamer|kamers|
-         habitació|habitacions)\b/x
-    )
+    /\b(suite|suites|chambre|chambres|hébergement|logement|room|rooms|accommodation|habitacion|habitaciones|kamer|kamers|habitació|habitacions)\b/.test(text)
   ) {
     return "list_suites";
   }
 
   // INTENTION : aide générale
   if (
-    text.match(
-      /\b(aide|help|ayuda|hulpm|que peux|que faire|what can)\b/x
-    )
+    /\b(aide|help|ayuda|hulp|que peux|que faire|what can)\b/.test(text)
   ) {
     return "help";
   }
