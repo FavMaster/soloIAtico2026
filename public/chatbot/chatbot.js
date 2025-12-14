@@ -277,9 +277,22 @@ function detectTopic(message) {
 }
 
 
+/****************************************************
+ * Parser KB — extrait SHORT et LONG
+ ****************************************************/
+function parseKB(text) {
+  const shortMatch = text.match(/SHORT:\s*([\s\S]*?)\nLONG:/i);
+  const longMatch = text.match(/LONG:\s*([\s\S]*)/i);
+
+  return {
+    short: shortMatch ? shortMatch[1].trim() : "",
+    long: longMatch ? longMatch[1].trim() : ""
+  };
+}
+
 
 /****************************************************
- * 7.3) Fonction d’envoi — Réponse courte + KB
+ * 7.3) Fonction d’envoi — Réponse courte + KB propre
  ****************************************************/
 async function sendMessage() {
   if (!input.value.trim()) return;
@@ -303,45 +316,71 @@ async function sendMessage() {
   const topic = detectTopic(userText);
   const kbPath = resolveKBPath(userText, lang);
 
-  typing.style.display = "none";
-
   /* Message bot */
   const bot = document.createElement("div");
   bot.className = "msg botMsg";
 
-  /* 1️⃣ Réponse courte */
-  const shortBlock = document.createElement("div");
-  shortBlock.innerHTML = `<b>${getShortAnswer(topic, lang)}</b><br><br>`;
-  bot.appendChild(shortBlock);
+  try {
+    /* 1️⃣ Réponse courte (toujours affichée) */
+    const shortIntro = document.createElement("div");
+    shortIntro.innerHTML = `<b>${getShortAnswer(topic, lang)}</b><br><br>`;
+    bot.appendChild(shortIntro);
 
-  /* 2️⃣ Réponse détaillée */
-  if (kbPath) {
-    try {
+    /* 2️⃣ Chargement KB si disponible */
+    if (kbPath) {
       console.log("📚 Chargement KB :", kbPath);
-      const response = await fetch(kbPath);
-      const text = await response.text();
 
-      const detail = document.createElement("div");
-      detail.textContent = text.substring(0, 700) + "…";
-      bot.appendChild(detail);
-    } catch (err) {
+      const response = await fetch(kbPath);
+      if (!response.ok) throw new Error("KB introuvable");
+
+      const rawText = await response.text();
+      const kb = parseKB(rawText); // ⬅️ SHORT / LONG
+
+      /* Texte court issu de la KB */
+      if (kb.short) {
+        const shortText = document.createElement("div");
+        shortText.textContent = kb.short;
+        bot.appendChild(shortText);
+      }
+
+      /* Bouton détails */
+      if (kb.long) {
+        const moreBtn = document.createElement("button");
+        moreBtn.className = "kbMoreBtn";
+        moreBtn.textContent = "Voir la description complète";
+
+        moreBtn.addEventListener("click", () => {
+          const longText = document.createElement("div");
+          longText.className = "kbLongText";
+          longText.textContent = kb.long;
+          bot.appendChild(document.createElement("br"));
+          bot.appendChild(longText);
+          moreBtn.remove();
+          bodyEl.scrollTop = bodyEl.scrollHeight;
+        });
+
+        bot.appendChild(document.createElement("br"));
+        bot.appendChild(moreBtn);
+      }
+    } else {
       bot.appendChild(
         document.createTextNode(
-          "Désolé, cette information n’est pas encore disponible."
+          "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou que faire à L’Escala 😊"
         )
       );
     }
-  } else {
-    bot.appendChild(
-      document.createTextNode(
-        "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou que faire à L’Escala 😊"
-      )
-    );
+
+  } catch (err) {
+    console.error("❌ Erreur chatbot :", err);
+    bot.textContent =
+      "Désolé, une erreur est survenue. Pouvez-vous reformuler votre demande ?";
   }
 
+  typing.style.display = "none";
   bodyEl.appendChild(bot);
   bodyEl.scrollTop = bodyEl.scrollHeight;
 }
+
 
 
 
