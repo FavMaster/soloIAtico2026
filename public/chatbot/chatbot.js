@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE - Fav - Chemin Complet
- * Version 1.3.1 (Architecture B) - chemin relatif
+ * Version 1.3.1 (Architecture B) - KB OK
  * Chargement HTML + CSS + JS sans ouverture automatique
  ****************************************************/
 
