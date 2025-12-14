@@ -6,9 +6,10 @@
 
 // Force Vercel update 2025-02-25
 
+
 (function() {
 
-  console.log("Solo’IA’tico Chatbot v1.4 — Initialisation…");
+  console.log("Solo’IA’tico Chatbot v1.4-debug — Initialisation…");
 
 /****************************************************
  * BASE URL KB (Vercel)
