@@ -205,6 +205,28 @@ function formatLongText(text) {
       }
     });
 
+
+/****************************************************
+ * WhatsApp Buttons — Activation
+ ****************************************************/
+const waLaurent = document.getElementById("waLaurent");
+const waSophia  = document.getElementById("waSophia");
+
+if (waLaurent) {
+  waLaurent.addEventListener("click", (e) => {
+    e.stopPropagation();
+    window.open("https://wa.me/34621210642", "_blank");
+  });
+}
+
+if (waSophia) {
+  waSophia.addEventListener("click", (e) => {
+    e.stopPropagation();
+    window.open("https://wa.me/34621128303", "_blank");
+  });
+}
+
+
     /****************************************************
      * SEND MESSAGE — VERSION SAINE
      ****************************************************/
