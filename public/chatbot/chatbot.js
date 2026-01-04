@@ -31,18 +31,22 @@
   /****************************************************
    * Langue
    ****************************************************/
-  function detectLanguage(message = "") {
-    const htmlLang = document.documentElement.lang;
-    if (htmlLang) return htmlLang.split("-")[0];
+ function detectLanguage(message = "") {
+  const text = message.toLowerCase();
 
-    const t = message.toLowerCase();
-    if (/\b(el|la|los|qué|hacer)\b/.test(t)) return "es";
-    if (/\b(wat|doen|kamer)\b/.test(t)) return "nl";
-    if (/\b(què|fer|habitació)\b/.test(t)) return "cat";
-    if (/\b(what|room|booking)\b/.test(t)) return "en";
+  // 1️⃣ Détection par le message (PRIORITAIRE)
+  if (/\b(is er|zwembad|kamer|kamers|boot|eten)\b/.test(text)) return "nl";
+  if (/\b(what|room|rooms|pool|boat|breakfast)\b/.test(text)) return "en";
+  if (/\b(el|la|los|las|qué|hacer|piscina)\b/.test(text)) return "es";
+  if (/\b(què|fer|habitació|piscina)\b/.test(text)) return "cat";
 
-    return "fr";
-  }
+  // 2️⃣ Fallback : langue de la page
+  const htmlLang = document.documentElement.lang;
+  if (htmlLang) return htmlLang.split("-")[0];
+
+  // 3️⃣ Fallback final
+  return "fr";
+}
 
   /****************************************************
    * Intentions
