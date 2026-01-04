@@ -304,105 +304,169 @@
       }
     });
 
-    /****************************************************
-     * SEND MESSAGE
-     ****************************************************/
-    async function sendMessage() {
-      if (!input.value.trim()) return;
+/****************************************************
+ * I18N — Textes système multilingues
+ ****************************************************/
+const i18n = {
+  fr: {
+    more: "Voir la description complète",
+    clarify: "Pouvez-vous préciser votre demande ? 😊",
+    help: "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou les activités à L’Escala 😊",
+    listIntro: "Nous proposons trois hébergements au Solo Ático ✨",
+    choose: "Souhaitez-vous que je vous détaille l’un d’eux ?"
+  },
 
-      const userText = input.value.trim();
-      input.value = "";
+  en: {
+    more: "View full description",
+    clarify: "Could you please clarify your request? 😊",
+    help: "I can help you with our suites, services, the Tintorera boat, Reiki, or things to do in L’Escala 😊",
+    listIntro: "We offer three accommodations at Solo Ático ✨",
+    choose: "Would you like details about one of them?"
+  },
 
-      const userBubble = document.createElement("div");
-      userBubble.className = "msg userMsg";
-      userBubble.textContent = userText;
-      bodyEl.appendChild(userBubble);
-      bodyEl.scrollTop = bodyEl.scrollHeight;
+  es: {
+    more: "Ver la descripción completa",
+    clarify: "¿Podría precisar su solicitud? 😊",
+    help: "Puedo informarle sobre nuestras suites, servicios, el barco Tintorera, Reiki o qué hacer en L’Escala 😊",
+    listIntro: "Ofrecemos tres alojamientos en Solo Ático ✨",
+    choose: "¿Desea que le detalle alguno de ellos?"
+  },
 
-      typing.style.display = "flex";
+  nl: {
+    more: "Volledige beschrijving bekijken",
+    clarify: "Kunt u uw vraag verduidelijken? 😊",
+    help: "Ik kan u helpen met onze suites, diensten, de Tintorera-boot, Reiki of activiteiten in L’Escala 😊",
+    listIntro: "Wij bieden drie accommodaties bij Solo Ático ✨",
+    choose: "Wilt u meer details over één ervan?"
+  },
 
-      const lang = detectLanguage(userText);
-      const intent = detectIntent(userText);
-      const topic = detectTopic(userText);
-      const kbPath = resolveKBPath(userText, lang);
+  cat: {
+    more: "Veure la descripció completa",
+    clarify: "Podeu precisar la vostra sol·licitud? 😊",
+    help: "Puc informar-vos sobre les nostres suites, serveis, el vaixell Tintorera, Reiki o què fer a l’Escala 😊",
+    listIntro: "Oferim tres allotjaments a Solo Ático ✨",
+    choose: "Voleu que us en detalli algun?"
+  }
+};
 
-      const bot = document.createElement("div");
-      bot.className = "msg botMsg";
+function t(lang, key) {
+  return i18n[lang]?.[key] || i18n.fr[key];
+}
 
-      try {
 
-        if (intent === "list_suites") {
-          bot.innerHTML = `
-            <b>Nous proposons trois hébergements au Solo Ático ✨</b><br><br>
-            • <b>Suite Neus</b><br>
-            • <b>Suite Bourlardes</b><br>
-            • <b>Chambre Blue Patio</b><br><br>
-            Souhaitez-vous que je vous détaille l’un d’eux ?
-          `;
-        }
 
-        else if (intent === "help") {
-          bot.textContent =
-            "Je peux vous renseigner sur nos suites, services, le bateau Tintorera, le Reiki ou les activités à L’Escala 😊";
-        }
 
-        else {
-          bot.innerHTML = `<b>${getShortAnswer(topic, lang)}</b><br><br>`;
 
-          if (!kbPath) {
-            bot.innerHTML += "Pouvez-vous préciser votre demande ? 😊";
-          } else {
-            let res = await fetch(kbPath);
 
-            if (!res.ok && lang !== "fr") {
-              res = await fetch(kbPath.replace(`/kb/${lang}/`, `/kb/fr/`));
-            }
 
-            if (!res.ok) throw new Error("KB introuvable");
+   /****************************************************
+ * SEND MESSAGE — VERSION MULTILINGUE STABLE (v1.4+)
+ ****************************************************/
+async function sendMessage() {
+  if (!input.value.trim()) return;
 
-            const kb = parseKB(await res.text());
+  const userText = input.value.trim();
+  input.value = "";
 
-            if (kb.short) bot.innerHTML += kb.short + "<br><br>";
+  /* Message utilisateur */
+  const userBubble = document.createElement("div");
+  userBubble.className = "msg userMsg";
+  userBubble.textContent = userText;
+  bodyEl.appendChild(userBubble);
+  bodyEl.scrollTop = bodyEl.scrollHeight;
 
-            if (kb.long) {
-              const btnLabels = {
-                fr: "Voir la description complète",
-                en: "View full description",
-                es: "Ver la descripción completa",
-                nl: "Bekijk volledige beschrijving",
-                cat: "Veure la descripció completa"
-              };
+  typing.style.display = "flex";
 
-              const btn = document.createElement("button");
-              btn.className = "kbMoreBtn";
-              btn.textContent = btnLabels[lang] || btnLabels.fr;
+  const lang   = detectLanguage(userText);
+  const intent = detectIntent(userText);
+  const topic  = detectTopic(userText);
+  const kbPath = resolveKBPath(userText, lang);
 
-              btn.onclick = (e) => {
-                e.stopPropagation();
-                btn.remove();
-                bot.innerHTML += formatLongText(kb.long);
-                bodyEl.scrollTop = bodyEl.scrollHeight;
-              };
+  const bot = document.createElement("div");
+  bot.className = "msg botMsg";
 
-              bot.appendChild(btn);
-            }
-          }
-        }
+  try {
 
-      } catch {
-        bot.textContent =
-          "Désolé, une erreur est survenue. Pouvez-vous reformuler ?";
-      }
-
-      typing.style.display = "none";
-      bodyEl.appendChild(bot);
-      bodyEl.scrollTop = bodyEl.scrollHeight;
+    /* ================================
+       INTENTION : LISTE DES SUITES
+    ================================= */
+    if (intent === "list_suites") {
+      bot.innerHTML = `
+        <b>${t(lang, "listIntro")}</b><br><br>
+        • <b>Suite Neus</b><br>
+        • <b>Suite Bourlardes</b><br>
+        • <b>Chambre Blue Patio</b><br><br>
+        ${t(lang, "choose")}
+      `;
     }
 
-    sendBtn.onclick = sendMessage;
-    input.addEventListener("keydown", e => e.key === "Enter" && sendMessage());
+    /* ================================
+       INTENTION : AIDE
+    ================================= */
+    else if (intent === "help") {
+      bot.textContent = t(lang, "help");
+    }
+
+    /* ================================
+       INTENTION : SUJET PRÉCIS (KB)
+    ================================= */
+    else {
+      /* Intro courte */
+      const intro = document.createElement("div");
+      intro.innerHTML = `<b>${getShortAnswer(topic, lang)}</b><br><br>`;
+      bot.appendChild(intro);
+
+      if (!kbPath) {
+        bot.appendChild(document.createTextNode(t(lang, "clarify")));
+      } else {
+        let res = await fetch(kbPath);
+
+        /* Fallback FR si fichier manquant */
+        if (!res.ok && lang !== "fr") {
+          res = await fetch(kbPath.replace(`/kb/${lang}/`, `/kb/fr/`));
+        }
+
+        if (!res.ok) throw new Error("KB introuvable");
+
+        const kb = parseKB(await res.text());
+
+        /* Résumé */
+        if (kb.short) {
+          const shortDiv = document.createElement("div");
+          shortDiv.textContent = kb.short;
+          bot.appendChild(shortDiv);
+        }
+
+        /* Bouton LONG */
+        if (kb.long) {
+          const btn = document.createElement("button");
+          btn.className = "kbMoreBtn";
+          btn.textContent = t(lang, "more");
+
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            btn.remove();
+
+            const longHTML = document.createElement("div");
+            longHTML.innerHTML = formatLongText(kb.long);
+            bot.appendChild(longHTML);
+
+            bodyEl.scrollTop = bodyEl.scrollHeight;
+          });
+
+          bot.appendChild(document.createElement("br"));
+          bot.appendChild(btn);
+        }
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+    bot.textContent =
+      "Une erreur est survenue. Pouvez-vous reformuler votre demande ?";
   }
 
-  window.addEventListener("DOMContentLoaded", initChatbot);
-
-})();
+  typing.style.display = "none";
+  bodyEl.appendChild(bot);
+  bodyEl.scrollTop = bodyEl.scrollHeight;
+}
