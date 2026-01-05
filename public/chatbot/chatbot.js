@@ -1,49 +1,15 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.6.2 — STABLE UI & FLOW FIX
+ * Version 1.6.6.3 — UI CLEAN & STABLE
+ * Flow Bateau — Short / Long / Booking OK
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
-  const STORAGE_KEY = "soloia_concierge_v1662";
+  const STORAGE_KEY = "soloia_concierge_v1663";
 
-  console.log("Solo’IA’tico Chatbot v1.6.6.2");
-
-  /* ================= MEMORY ================= */
-  const memory = (() => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-    catch { return {}; }
-  })();
-
-  function saveMemory() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(memory));
-  }
-
-  memory.state = "INFO";
-  saveMemory();
-
-  /* ================= I18N (FR) ================= */
-  const I18N = {
-    bateau: {
-      short: "La Tintorera vous propose des sorties en mer inoubliables ⛵",
-      long: "Tintorera est une balade en bateau privée à bord d’un llaut catalan traditionnel. Idéale pour baignades, couchers de soleil, découvertes marines et moments inoubliables sur la Costa Brava.",
-      book: "⛵ Réserver la sortie Tintorera"
-    },
-    more: "Voir la description complète",
-    clarify: "Pouvez-vous préciser votre demande ? 😊"
-  };
-
-  /* ================= HELPERS ================= */
-  function normalize(t) {
-    return t.toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^\w\s]/g, "");
-  }
-
-  function isBateau(t) {
-    return /bateau|tintorera/.test(t);
-  }
+  console.log("Solo’IA’tico Chatbot v1.6.6.3");
 
   /* ================= INIT ================= */
   document.addEventListener("DOMContentLoaded", async () => {
@@ -78,50 +44,71 @@
       }
     });
 
-    /* CHAT CORE */
+    /* ================= CHAT CORE ================= */
     const sendBtn = document.getElementById("sendBtn");
     const input   = document.getElementById("userInput");
     const bodyEl  = document.getElementById("chatBody");
     const typing  = document.getElementById("typing");
 
-    function renderBateau(bot) {
-      bot.innerHTML = `<b>${I18N.bateau.short}</b><br><br>`;
+    const TEXT = {
+      short: "La Tintorera vous propose des sorties en mer inoubliables ⛵",
+      long: "Tintorera est une balade en bateau privée à bord d’un llaut catalan traditionnel. Idéale pour baignades, couchers de soleil, découvertes marines et moments inoubliables sur la Costa Brava.",
+      more: "Voir la description complète",
+      book: "⛵ Réserver la sortie Tintorera",
+      clarify: "Pouvez-vous préciser votre demande ? 😊"
+    };
 
+    function normalize(t) {
+      return t.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\w\s]/g, "");
+    }
+
+    function isBateau(t) {
+      return /bateau|tintorera/.test(t);
+    }
+
+    function renderBateau() {
+      const bot = document.createElement("div");
+      bot.className = "msg botMsg";
+
+      /* SHORT — TOUJOURS */
+      const shortDiv = document.createElement("div");
+      shortDiv.innerHTML = `<b>${TEXT.short}</b>`;
+      bot.appendChild(shortDiv);
+
+      /* LONG — OPTIONNEL */
+      const longDiv = document.createElement("div");
+      longDiv.style.display = "none";
+      longDiv.innerHTML = `<p>${TEXT.long}</p>`;
+      bot.appendChild(longDiv);
+
+      /* BTN MORE */
       const moreBtn = document.createElement("button");
       moreBtn.className = "kbMoreBtn";
-      moreBtn.textContent = I18N.more;
+      moreBtn.textContent = TEXT.more;
 
-      moreBtn.addEventListener("click", (e) => {
+      moreBtn.addEventListener("click", e => {
         e.stopPropagation();
+        longDiv.style.display = "block";
         moreBtn.remove();
-
-        const longDiv = document.createElement("div");
-        longDiv.innerHTML = `<p>${I18N.bateau.long}</p>`;
-        bot.appendChild(longDiv);
-
-        const bookBtn = document.createElement("a");
-        bookBtn.href = "https://koalendar.com/e/tintorera";
-        bookBtn.target = "_blank";
-        bookBtn.className = "kbBookBtn";
-        bookBtn.textContent = I18N.bateau.book;
-
-        bookBtn.addEventListener("click", e => e.stopPropagation());
-        bot.appendChild(bookBtn);
-
         bodyEl.scrollTop = bodyEl.scrollHeight;
       });
 
       bot.appendChild(moreBtn);
 
+      /* SINGLE BOOK BUTTON */
       const bookBtn = document.createElement("a");
       bookBtn.href = "https://koalendar.com/e/tintorera";
       bookBtn.target = "_blank";
       bookBtn.className = "kbBookBtn";
-      bookBtn.textContent = I18N.bateau.book;
+      bookBtn.textContent = TEXT.book;
       bookBtn.addEventListener("click", e => e.stopPropagation());
 
-      bot.appendChild(document.createElement("br"));
       bot.appendChild(bookBtn);
+
+      bodyEl.appendChild(bot);
+      bodyEl.scrollTop = bodyEl.scrollHeight;
     }
 
     async function sendMessage() {
@@ -134,18 +121,17 @@
       typing.style.display = "flex";
 
       const t = normalize(raw);
-      const bot = document.createElement("div");
-      bot.className = "msg botMsg";
 
       if (isBateau(t)) {
-        renderBateau(bot);
+        renderBateau();
       } else {
-        bot.textContent = I18N.clarify;
+        const bot = document.createElement("div");
+        bot.className = "msg botMsg";
+        bot.textContent = TEXT.clarify;
+        bodyEl.appendChild(bot);
       }
 
       typing.style.display = "none";
-      bodyEl.appendChild(bot);
-      bodyEl.scrollTop = bodyEl.scrollHeight;
     }
 
     sendBtn.addEventListener("click", e => {
@@ -161,7 +147,7 @@
       }
     });
 
-    console.log("✅ v1.6.6.2 loaded");
+    console.log("✅ v1.6.6.3 UI stable");
   });
 
 })();
