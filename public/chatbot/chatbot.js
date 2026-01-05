@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.7.2 — FLOWS TINTO + REIKI
+ * Version 1.6.7.3 — SERVICES + SUITES
  * KB driven / UI stable
  ****************************************************/
 
@@ -8,7 +8,7 @@
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
 
-  console.log("Solo’IA’tico Chatbot v1.6.7.2 — Tintorera + Reiki");
+  console.log("Solo’IA’tico Chatbot v1.6.7.3");
 
   function ready(fn) {
     if (document.readyState !== "loading") fn();
@@ -77,7 +77,6 @@
     function parseKB(text) {
       const short = text.match(/SHORT:\s*([\s\S]*?)\n/i);
       const long  = text.match(/LONG:\s*([\s\S]*)/i);
-
       return {
         short: short ? short[1].trim() : "",
         long:  long  ? long[1].trim()  : ""
@@ -103,6 +102,14 @@
 
     function isReiki(t) {
       return /reiki|riki|soin|energie|energetique/.test(t);
+    }
+
+    function detectSuite(t) {
+      if (/neus/.test(t)) return "suite-neus";
+      if (/bourlard/.test(t)) return "suite-bourlardes";
+      if (/blue|patio/.test(t)) return "room-blue-patio";
+      if (/suite|chambre|room/.test(t)) return "list";
+      return null;
     }
 
     /* ================= RENDER GENERIC ================= */
@@ -165,11 +172,9 @@
       const lang = detectLang();
 
       try {
-        if (isBateau(t)) {
-          const kb = await loadKB(
-            `${KB_BASE_URL}/kb/${lang}/03_services/tintorera-bateau.txt`
-          );
 
+        if (isBateau(t)) {
+          const kb = await loadKB(`${KB_BASE_URL}/kb/${lang}/03_services/tintorera-bateau.txt`);
           renderKBBlock({
             short: kb.short,
             long: kb.long,
@@ -179,10 +184,7 @@
         }
 
         else if (isReiki(t)) {
-          const kb = await loadKB(
-            `${KB_BASE_URL}/kb/${lang}/03_services/reiki.txt`
-          );
-
+          const kb = await loadKB(`${KB_BASE_URL}/kb/${lang}/03_services/reiki.txt`);
           renderKBBlock({
             short: kb.short,
             long: kb.long,
@@ -192,12 +194,40 @@
         }
 
         else {
-          bodyEl.insertAdjacentHTML("beforeend",
-            `<div class="msg botMsg">Pouvez-vous préciser votre demande ? 😊</div>`
-          );
+          const suite = detectSuite(t);
+
+          if (suite === "list") {
+            bodyEl.insertAdjacentHTML("beforeend",
+              `<div class="msg botMsg">
+                Nous proposons trois hébergements :<br>
+                • Suite Neus<br>
+                • Suite Bourlardes<br>
+                • Chambre Blue Patio
+              </div>`
+            );
+          }
+
+          else if (suite) {
+            const kb = await loadKB(
+              `${KB_BASE_URL}/kb/${lang}/02_suites/${suite}.txt`
+            );
+
+            renderKBBlock({
+              short: kb.short,
+              long: kb.long,
+              bookLabel: "🏨 Réserver cette suite",
+              bookUrl: `https://soloatico.amenitiz.io/${lang}/booking/room`
+            });
+          }
+
+          else {
+            bodyEl.insertAdjacentHTML("beforeend",
+              `<div class="msg botMsg">Pouvez-vous préciser votre demande ? 😊</div>`
+            );
+          }
         }
 
-      } catch (e) {
+      } catch {
         bodyEl.insertAdjacentHTML("beforeend",
           `<div class="msg botMsg">Désolé, les informations demandées sont momentanément indisponibles.</div>`
         );
@@ -218,7 +248,7 @@
       }
     };
 
-    console.log("✅ Solo’IA’tico v1.6.7.2 — Reiki OK");
+    console.log("✅ Solo’IA’tico v1.6.7.3 — Suites OK");
   });
 
 })();
