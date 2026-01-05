@@ -1,16 +1,16 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.5.7 STABLE
- * DOM SAFE — KB SHORT + LONG
- * Mémoire persistante + Langue page / override user
+ * Version 1.5.8 STABLE
+ * LANGUE 100% COHÉRENTE
+ * Mémoire persistante + KB SAFE
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
-  const STORAGE_KEY = "soloia_state_v1";
+  const STORAGE_KEY = "soloia_state_v2";
 
-  console.log("Solo’IA’tico Chatbot v1.5.7 — Loaded");
+  console.log("Solo’IA’tico Chatbot v1.5.8 — Loaded");
 
   /****************************************************
    * MÉMOIRE PERSISTANTE
@@ -28,7 +28,7 @@
   }
 
   /****************************************************
-   * I18N
+   * I18N — TEXTES UI UNIQUEMENT
    ****************************************************/
   const I18N = {
     fr: {
@@ -73,7 +73,7 @@
   }
 
   /****************************************************
-   * LANGUE — PAGE + OVERRIDE USER
+   * LANGUE — PRIORITÉ CORRIGÉE
    ****************************************************/
   function getPageLang() {
     return document.documentElement.lang?.split("-")[0] || "fr";
@@ -81,34 +81,43 @@
 
   function detectLanguageFromText(text) {
     const t = text.toLowerCase();
-    if (/what|is|are|boat|reiki|pool/.test(t)) return "en";
-    return "fr";
+    if (/[a-z]/.test(t) && /what|is|are|can you/.test(t)) return "en";
+    if (/qué|puede|hacer/.test(t)) return "es";
+    return null;
   }
 
   function resolveLang(text) {
     if (memory.lang) return memory.lang;
-    return detectLanguageFromText(text) || getPageLang();
+
+    const pageLang = getPageLang();
+    if (pageLang) return pageLang;
+
+    const detected = detectLanguageFromText(text);
+    if (detected) return detected;
+
+    return "fr";
   }
 
   /****************************************************
    * INTENT / TOPIC
    ****************************************************/
   function detectIntent(text) {
-    if (/suite|suites|rooms|hébergements/.test(text.toLowerCase()))
-      return "list_suites";
-    if (/help|aide/.test(text.toLowerCase()))
-      return "help";
+    const t = text.toLowerCase();
+    if (/suite|suites|rooms|hébergements/.test(t)) return "list_suites";
+    if (/help|aide/.test(t)) return "help";
     return "specific";
   }
 
   function detectTopic(text) {
     const t = text.toLowerCase();
+
     if (/neus/.test(t)) return "suite_neus";
     if (/bourlard/.test(t)) return "suite_bourlardes";
     if (/blue/.test(t)) return "suite_blue";
     if (/tintorera|bateau|boat/.test(t)) return "bateau";
     if (/reiki/.test(t)) return "reiki";
     if (/piscine|pool/.test(t)) return "piscine";
+
     return memory.lastTopic || "default";
   }
 
@@ -124,6 +133,7 @@
       suite_bourlardes: "02_suites/suite-bourlardes.txt",
       suite_blue: "02_suites/suite-blue-patio.txt"
     };
+
     return map[topic]
       ? `${KB_BASE_URL}/kb/${lang}/${map[topic]}`
       : null;
@@ -200,6 +210,7 @@
       bot.className = "msg botMsg";
 
       try {
+
         if (intent === "help") {
           bot.textContent = t(lang, "help");
         }
@@ -229,6 +240,7 @@
             if (!res.ok && lang !== "fr") {
               res = await fetch(kbPath.replace(`/kb/${lang}/`, `/kb/fr/`));
             }
+
             if (res.ok) {
               const kb = parseKB(await res.text());
 
@@ -288,7 +300,7 @@
       }
     });
 
-    console.log("✅ Chatbot Solo’IA’tico v1.5.7 prêt");
+    console.log("✅ Chatbot Solo’IA’tico v1.5.8 prêt");
   });
 
 })();
