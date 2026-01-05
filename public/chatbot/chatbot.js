@@ -378,6 +378,31 @@ function t(lang, key) {
   return i18n[lang]?.[key] || i18n.fr[key];
 }
 
+/****************************************************
+ * WhatsApp Buttons — Activation fiable
+ ****************************************************/
+const waLaurent = document.getElementById("waLaurent");
+const waSophia  = document.getElementById("waSophia");
+
+if (waLaurent) {
+  waLaurent.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open("https://wa.me/34621210642", "_blank");
+  });
+} else {
+  console.warn("⚠️ Bouton WhatsApp Laurent introuvable");
+}
+
+if (waSophia) {
+  waSophia.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open("https://wa.me/34621128303", "_blank");
+  });
+} else {
+  console.warn("⚠️ Bouton WhatsApp Sophia introuvable");
+}
 
 
 /****************************************************
