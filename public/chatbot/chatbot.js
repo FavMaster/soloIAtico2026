@@ -447,11 +447,22 @@ async function sendMessage() {
 
         const kb = parseKB(await res.text());
 
-        /* Résumé */
-        if (kb.short) {
-          const shortDiv = document.createElement("div");
-          shortDiv.textContent = kb.short;
-          bot.appendChild(shortDiv);
+ /* Résumé */
+if (kb.short) {
+  const shortDiv = document.createElement("div");
+  shortDiv.textContent = kb.short;
+  bot.appendChild(shortDiv);
+}
+
+/* Tarifs / prix mis en avant si présents */
+const prices = extractPrices(kb.long);
+if (prices) {
+  const priceDiv = document.createElement("div");
+  priceDiv.className = "kbPrice";
+  priceDiv.innerHTML = `<br><b>💰 Tarifs :</b> ${prices}`;
+  bot.appendChild(priceDiv);
+}
+
         }
 
         /* Bouton LONG */
