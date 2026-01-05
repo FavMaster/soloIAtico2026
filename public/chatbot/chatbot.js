@@ -1,20 +1,19 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.6.6 — INIT ROBUSTE
- * Bot toujours visible (no DOMContentLoaded)
+ * Version 1.6.7 — UI STABLE + KB ACTIVE
+ * Flow Bateau (KB driven)
  ****************************************************/
 
-(function initSoloIATico() {
+(function SoloIATico() {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
-  console.log("Solo’IA’tico Chatbot v1.6.6.6 — init");
+  const KB_TINTO = `${KB_BASE_URL}/kb/fr/bateau/tintorera.txt`;
+
+  console.log("Solo’IA’tico Chatbot v1.6.7 — KB active");
 
   function ready(fn) {
-    if (document.readyState !== "loading") {
-      fn();
-    } else {
-      document.addEventListener("DOMContentLoaded", fn);
-    }
+    if (document.readyState !== "loading") fn();
+    else document.addEventListener("DOMContentLoaded", fn);
   }
 
   ready(async function () {
@@ -30,16 +29,10 @@
 
     /* ===== HTML ===== */
     if (!document.getElementById("chatWindow")) {
-      try {
-        const html = await fetch(`${KB_BASE_URL}/chatbot/chatbot.html`).then(r => r.text());
-        document.body.insertAdjacentHTML("beforeend", html);
-      } catch (e) {
-        console.error("❌ Chatbot HTML load failed", e);
-        return;
-      }
+      const html = await fetch(`${KB_BASE_URL}/chatbot/chatbot.html`).then(r => r.text());
+      document.body.insertAdjacentHTML("beforeend", html);
     }
 
-    /* ===== ELEMENTS ===== */
     const chatWin = document.getElementById("chatWindow");
     const openBtn = document.getElementById("openChatBtn");
     const sendBtn = document.getElementById("sendBtn");
@@ -47,23 +40,18 @@
     const bodyEl  = document.getElementById("chatBody");
     const typing  = document.getElementById("typing");
 
-    if (!chatWin || !openBtn) {
-      console.error("❌ Chatbot DOM not found");
-      return;
-    }
-
     /* ===== OPEN / CLOSE ===== */
     let isOpen = false;
     chatWin.style.display = "none";
 
-    openBtn.onclick = function (e) {
+    openBtn.onclick = e => {
       e.preventDefault();
       e.stopPropagation();
       isOpen = !isOpen;
       chatWin.style.display = isOpen ? "flex" : "none";
     };
 
-    document.addEventListener("click", function (e) {
+    document.addEventListener("click", e => {
       if (isOpen && !chatWin.contains(e.target) && !openBtn.contains(e.target)) {
         chatWin.style.display = "none";
         isOpen = false;
@@ -74,29 +62,35 @@
     const waLaurent = document.getElementById("waLaurent");
     const waSophia  = document.getElementById("waSophia");
 
-    if (waLaurent) {
-      waLaurent.onclick = e => {
-        e.preventDefault();
-        window.open("https://wa.me/34621210642", "_blank");
+    if (waLaurent) waLaurent.onclick = () =>
+      window.open("https://wa.me/34621210642", "_blank");
+
+    if (waSophia) waSophia.onclick = () =>
+      window.open("https://wa.me/34621128303", "_blank");
+
+    /* ===== KB PARSER ===== */
+    function parseKB(text) {
+      const get = (label) => {
+        const r = new RegExp(`${label}:([\\s\\S]*?)(\\n[A-Z]+:|$)`, "i");
+        const m = text.match(r);
+        return m ? m[1].trim() : "";
+      };
+
+      return {
+        short:  get("SHORT"),
+        intro:  get("INTRO"),
+        long:   get("LONG"),
+        prices: get("PRICES")
       };
     }
 
-    if (waSophia) {
-      waSophia.onclick = e => {
-        e.preventDefault();
-        window.open("https://wa.me/34621128303", "_blank");
-      };
+    async function loadTintoreraKB() {
+      const res = await fetch(KB_TINTO);
+      if (!res.ok) throw new Error("KB Tintorera introuvable");
+      return parseKB(await res.text());
     }
 
-    /* ===== TEXT ===== */
-    const TEXT = {
-      short: "La Tintorera vous propose des sorties en mer inoubliables ⛵",
-      long: "Tintorera est une balade en bateau privée à bord d’un llaut catalan traditionnel. Idéale pour baignades, couchers de soleil, découvertes marines et moments inoubliables sur la Costa Brava.",
-      more: "Voir la description complète",
-      book: "⛵ Réserver la sortie Tintorera",
-      clarify: "Pouvez-vous préciser votre demande ? 😊"
-    };
-
+    /* ===== NLP ===== */
     function normalize(t) {
       return t.toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -104,30 +98,51 @@
     }
 
     function isBateau(t) {
-      return /bateau|tintorera/.test(t);
+      return /bateau|tintorera|boat/.test(t);
     }
 
-    function renderBateau() {
+    /* ===== RENDER ===== */
+    async function renderTintorera() {
+      const kb = await loadTintoreraKB();
+
       const bot = document.createElement("div");
       bot.className = "msg botMsg";
 
       const shortDiv = document.createElement("div");
-      shortDiv.innerHTML = `<strong>${TEXT.short}</strong>`;
+      shortDiv.className = "kbShort";
+      shortDiv.textContent = kb.short || "Oui ⛵ Nous proposons des sorties en mer privées.";
       bot.appendChild(shortDiv);
 
+      const introDiv = document.createElement("div");
+      introDiv.className = "kbIntro";
+      introDiv.innerHTML = `<strong>${kb.intro}</strong>`;
+      bot.appendChild(introDiv);
+
       const longDiv = document.createElement("div");
+      longDiv.className = "kbLong";
       longDiv.style.display = "none";
-      longDiv.innerHTML = `<p>${TEXT.long}</p>`;
+      longDiv.innerHTML = `<p>${kb.long.replace(/\n/g, "<br>")}</p>`;
       bot.appendChild(longDiv);
 
+      if (kb.prices) {
+        const priceDiv = document.createElement("div");
+        priceDiv.className = "kbPrices";
+        priceDiv.style.display = "none";
+        priceDiv.innerHTML = `<p>${kb.prices.replace(/\n/g, "<br>")}</p>`;
+        bot.appendChild(priceDiv);
+      }
+
       const actions = document.createElement("div");
+      actions.className = "kbActions";
 
       const moreBtn = document.createElement("button");
       moreBtn.className = "kbMoreBtn";
-      moreBtn.textContent = TEXT.more;
+      moreBtn.textContent = "Voir la description complète";
+
       moreBtn.onclick = e => {
         e.stopPropagation();
         longDiv.style.display = "block";
+        if (kb.prices) bot.querySelector(".kbPrices").style.display = "block";
         moreBtn.remove();
       };
 
@@ -135,7 +150,7 @@
       bookBtn.href = "https://koalendar.com/e/tintorera";
       bookBtn.target = "_blank";
       bookBtn.className = "kbBookBtn";
-      bookBtn.textContent = TEXT.book;
+      bookBtn.textContent = "⛵ Réserver la sortie Tintorera";
 
       actions.appendChild(moreBtn);
       actions.appendChild(bookBtn);
@@ -146,23 +161,33 @@
     }
 
     /* ===== SEND ===== */
-    function sendMessage() {
+    async function sendMessage() {
       if (!input.value.trim()) return;
 
       const raw = input.value.trim();
       input.value = "";
 
-      bodyEl.insertAdjacentHTML("beforeend", `<div class="msg userMsg">${raw}</div>`);
+      bodyEl.insertAdjacentHTML("beforeend",
+        `<div class="msg userMsg">${raw}</div>`
+      );
+
       typing.style.display = "flex";
 
       const t = normalize(raw);
 
       if (isBateau(t)) {
-        renderBateau();
+        try {
+          await renderTintorera();
+        } catch (e) {
+          const bot = document.createElement("div");
+          bot.className = "msg botMsg";
+          bot.textContent = "Désolé, les informations du bateau sont momentanément indisponibles.";
+          bodyEl.appendChild(bot);
+        }
       } else {
         const bot = document.createElement("div");
         bot.className = "msg botMsg";
-        bot.textContent = TEXT.clarify;
+        bot.textContent = "Pouvez-vous préciser votre demande ? 😊";
         bodyEl.appendChild(bot);
       }
 
@@ -181,7 +206,7 @@
       }
     };
 
-    console.log("✅ Solo’IA’tico chatbot visible & stable");
+    console.log("✅ Solo’IA’tico v1.6.7 — KB connected");
   });
 
 })();
