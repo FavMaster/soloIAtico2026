@@ -1,14 +1,14 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.7.1 — KB OFFICIELLE SOLOÁTICO
- * Respect strict de l’arborescence KB
+ * Version 1.6.7.2 — FLOWS TINTO + REIKI
+ * KB driven / UI stable
  ****************************************************/
 
 (function SoloIATico() {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
 
-  console.log("Solo’IA’tico Chatbot v1.6.7.1 — KB real paths");
+  console.log("Solo’IA’tico Chatbot v1.6.7.2 — Tintorera + Reiki");
 
   function ready(fn) {
     if (document.readyState !== "loading") fn();
@@ -84,6 +84,12 @@
       };
     }
 
+    async function loadKB(path) {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error("KB introuvable");
+      return parseKB(await res.text());
+    }
+
     /* ================= NLP ================= */
     function normalize(t) {
       return t.toLowerCase()
@@ -95,35 +101,26 @@
       return /bateau|tintorera|boat/.test(t);
     }
 
-    /* ================= RENDER TINTO ================= */
-    async function renderTintorera() {
-      const lang = detectLang();
+    function isReiki(t) {
+      return /reiki|riki|soin|energie|energetique/.test(t);
+    }
 
-      const kbPath =
-        `${KB_BASE_URL}/kb/${lang}/03_services/tintorera-bateau.txt`;
-
-      const res = await fetch(kbPath);
-      if (!res.ok) throw new Error("KB Tintorera introuvable");
-
-      const kb = parseKB(await res.text());
-
+    /* ================= RENDER GENERIC ================= */
+    function renderKBBlock({ short, long, bookLabel, bookUrl }) {
       const bot = document.createElement("div");
       bot.className = "msg botMsg";
 
-      /* SHORT */
       const shortDiv = document.createElement("div");
       shortDiv.className = "kbShort";
-      shortDiv.textContent = kb.short;
+      shortDiv.textContent = short;
       bot.appendChild(shortDiv);
 
-      /* LONG (hidden) */
       const longDiv = document.createElement("div");
       longDiv.className = "kbLong";
       longDiv.style.display = "none";
-      longDiv.innerHTML = kb.long.replace(/\n/g, "<br>");
+      longDiv.innerHTML = long.replace(/\n/g, "<br>");
       bot.appendChild(longDiv);
 
-      /* ACTIONS */
       const actions = document.createElement("div");
       actions.className = "kbActions";
 
@@ -138,10 +135,10 @@
       };
 
       const bookBtn = document.createElement("a");
-      bookBtn.href = "https://koalendar.com/e/tintorera";
+      bookBtn.href = bookUrl;
       bookBtn.target = "_blank";
       bookBtn.className = "kbBookBtn";
-      bookBtn.textContent = "⛵ Réserver la sortie Tintorera";
+      bookBtn.textContent = bookLabel;
 
       actions.appendChild(moreBtn);
       actions.appendChild(bookBtn);
@@ -165,18 +162,44 @@
       typing.style.display = "flex";
 
       const t = normalize(raw);
+      const lang = detectLang();
 
-      if (isBateau(t)) {
-        try {
-          await renderTintorera();
-        } catch {
+      try {
+        if (isBateau(t)) {
+          const kb = await loadKB(
+            `${KB_BASE_URL}/kb/${lang}/03_services/tintorera-bateau.txt`
+          );
+
+          renderKBBlock({
+            short: kb.short,
+            long: kb.long,
+            bookLabel: "⛵ Réserver la sortie Tintorera",
+            bookUrl: "https://koalendar.com/e/tintorera"
+          });
+        }
+
+        else if (isReiki(t)) {
+          const kb = await loadKB(
+            `${KB_BASE_URL}/kb/${lang}/03_services/reiki.txt`
+          );
+
+          renderKBBlock({
+            short: kb.short,
+            long: kb.long,
+            bookLabel: "🧘‍♀️ Réserver une séance Reiki",
+            bookUrl: "https://koalendar.com/e/soloatico-reiki"
+          });
+        }
+
+        else {
           bodyEl.insertAdjacentHTML("beforeend",
-            `<div class="msg botMsg">Désolé, les informations du bateau sont momentanément indisponibles.</div>`
+            `<div class="msg botMsg">Pouvez-vous préciser votre demande ? 😊</div>`
           );
         }
-      } else {
+
+      } catch (e) {
         bodyEl.insertAdjacentHTML("beforeend",
-          `<div class="msg botMsg">Pouvez-vous préciser votre demande ? 😊</div>`
+          `<div class="msg botMsg">Désolé, les informations demandées sont momentanément indisponibles.</div>`
         );
       }
 
@@ -195,7 +218,7 @@
       }
     };
 
-    console.log("✅ Solo’IA’tico v1.6.7.1 — KB Soloático OK");
+    console.log("✅ Solo’IA’tico v1.6.7.2 — Reiki OK");
   });
 
 })();
