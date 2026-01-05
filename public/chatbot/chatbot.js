@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.4.1 STABLE
+ * Version 1.4.2 STABLE - Multilingue - Fonctionnelle
  * Multilingue + KB Short / Long + Intentions
  ****************************************************/
 
