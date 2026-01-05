@@ -1,17 +1,15 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.6 — STABLE CONCIERGE
- * Bateau + Reiki + Suites
- * Short / Long / Booking
- * Multilingue FR / EN / ES / NL / CAT
+ * Version 1.6.6.1 — STABLE CONCIERGE FIX
+ * Short / Long / Booking OK
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
-  const STORAGE_KEY = "soloia_concierge_v166";
+  const STORAGE_KEY = "soloia_concierge_v1661";
 
-  console.log("Solo’IA’tico Chatbot v1.6.6 — Stable Concierge");
+  console.log("Solo’IA’tico Chatbot v1.6.6.1 — Stable Fix");
 
   /* ================= MEMORY ================= */
   const memory = (() => {
@@ -23,7 +21,6 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(memory));
   }
 
-  memory.lang  = memory.lang || null;
   memory.state = memory.state || "INFO";
   memory.slots = memory.slots || {};
   saveMemory();
@@ -32,64 +29,41 @@
   const STATES = {
     INFO: "INFO",
     BATEAU_DATE: "BATEAU_DATE",
-    BATEAU_PEOPLE: "BATEAU_PEOPLE",
-    REIKI_DATE: "REIKI_DATE",
-    REIKI_PEOPLE: "REIKI_PEOPLE",
-    SUITES_DATES: "SUITES_DATES",
-    SUITES_PEOPLE: "SUITES_PEOPLE"
+    BATEAU_PEOPLE: "BATEAU_PEOPLE"
   };
 
   function setState(s) {
     memory.state = s;
     saveMemory();
-    console.log("STATE →", s);
   }
 
-  /* ================= I18N ================= */
+  /* ================= I18N (FR) ================= */
   const I18N = {
-    fr: {
-      bateau: {
-        short: "La Tintorera vous propose des sorties en mer inoubliables ⛵",
-        long: "Tintorera est une balade en bateau privée à bord d’un llaut catalan traditionnel. Idéale pour baignades, couchers de soleil, découvertes marines et moments inoubliables sur la Costa Brava.",
-        askDate: "Pour quelle date souhaitez-vous la sortie en mer ?",
-        askPeople: "Combien de personnes participeront à la sortie ?",
-        book: "⛵ Réserver la sortie Tintorera"
-      },
-      reiki: {
-        short: "Des séances de Reiki sont disponibles 🌿",
-        long: "Le Reiki est un soin énergétique japonais favorisant une détente profonde, l’apaisement mental et le relâchement des tensions.",
-        askDate: "Pour quelle date souhaitez-vous la séance de Reiki ?",
-        askPeople: "Pour combien de personnes sera la séance ?",
-        book: "🧘‍♀️ Réserver une séance de Reiki"
-      },
-      suites: {
-        short: "Nous proposons trois hébergements élégants ✨",
-        long: "Solo Ático propose des suites et chambres haut de gamme, pensées pour un séjour confortable et apaisant à L’Escala.",
-        askDates: "Quelles dates souhaitez-vous pour votre séjour ?",
-        askPeople: "Pour combien de personnes sera le séjour ?",
-        book: "🏨 Vérifier les disponibilités"
-      },
-      more: "Voir la description complète",
-      clarify: "Pouvez-vous préciser votre demande ? 😊"
-    }
-    // 👉 pour stabilité immédiate : FR only (on réactivera les autres langues ensuite proprement)
+    bateau: {
+      short: "La Tintorera vous propose des sorties en mer inoubliables ⛵",
+      long: "Tintorera est une balade en bateau privée à bord d’un llaut catalan traditionnel. Idéale pour baignades, couchers de soleil, découvertes marines et moments inoubliables sur la Costa Brava.",
+      askDate: "Pour quelle date souhaitez-vous la sortie en mer ?",
+      askPeople: "Combien de personnes participeront à la sortie ?",
+      book: "⛵ Réserver la sortie Tintorera"
+    },
+    more: "Voir la description complète",
+    clarify: "Pouvez-vous préciser votre demande ? 😊"
   };
 
   /* ================= HELPERS ================= */
-  function getLang() {
-    return memory.lang || document.documentElement.lang?.split("-")[0] || "fr";
-  }
-
   function normalize(t) {
     return t.toLowerCase()
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^\w\s?]/g, "");
   }
 
-  function isBateau(t) { return /bateau|tintorera/.test(t); }
-  function isReiki(t) { return /reiki|riki/.test(t); }
-  function isSuites(t){ return /suite|suites|chambre|dormir|sejour/.test(t); }
-  function isBook(t)  { return /reserver|reservation|book|peut on/.test(t); }
+  function isBateau(t) {
+    return /bateau|tintorera/.test(t);
+  }
+
+  function wantsBooking(t) {
+    return /reserver|reservation|booking|peut on reserver|est il possible/.test(t);
+  }
 
   /* ================= INIT ================= */
   document.addEventListener("DOMContentLoaded", async () => {
@@ -139,63 +113,78 @@
       bodyEl.insertAdjacentHTML("beforeend", `<div class="msg userMsg">${raw}</div>`);
       typing.style.display = "flex";
 
-      const lang = getLang();
       const t = normalize(raw);
       const bot = document.createElement("div");
       bot.className = "msg botMsg";
 
-      /* ===== BATEAU ===== */
+      /* ===== BATEAU INFO ===== */
       if (isBateau(t) && memory.state === STATES.INFO) {
-        bot.innerHTML = `<b>${I18N[lang].bateau.short}</b><br><br>${I18N[lang].bateau.long}`;
 
-        if (isBook(t)) {
+        bot.innerHTML = `<b>${I18N.bateau.short}</b>`;
+
+        /* Bouton description complète */
+        const moreBtn = document.createElement("button");
+        moreBtn.className = "kbMoreBtn";
+        moreBtn.textContent = I18N.more;
+
+        moreBtn.onclick = () => {
+          moreBtn.remove();
+          const longDiv = document.createElement("div");
+          longDiv.innerHTML = `<br>${I18N.bateau.long}<br><br>`;
+          bot.appendChild(longDiv);
+
+          /* Bouton réserver visible après long */
+          const bookBtn = document.createElement("a");
+          bookBtn.href = "https://koalendar.com/e/tintorera";
+          bookBtn.target = "_blank";
+          bookBtn.className = "kbBookBtn";
+          bookBtn.textContent = I18N.bateau.book;
+          bot.appendChild(bookBtn);
+
+          bodyEl.scrollTop = bodyEl.scrollHeight;
+        };
+
+        bot.appendChild(document.createElement("br"));
+        bot.appendChild(moreBtn);
+
+        /* Si intention réservation directe */
+        if (wantsBooking(t)) {
           setState(STATES.BATEAU_DATE);
-          bot.innerHTML += `<br><br>${I18N[lang].bateau.askDate}`;
-        } else {
-          const btn = document.createElement("button");
-          btn.className = "kbMoreBtn";
-          btn.textContent = I18N[lang].more;
-          btn.onclick = () => {};
           bot.appendChild(document.createElement("br"));
-          bot.appendChild(btn);
+          bot.appendChild(document.createTextNode(I18N.bateau.askDate));
         }
       }
 
+      /* ===== FLOW DATE ===== */
       else if (memory.state === STATES.BATEAU_DATE) {
         memory.slots.date = raw;
         setState(STATES.BATEAU_PEOPLE);
-        bot.textContent = I18N[lang].bateau.askPeople;
+        bot.textContent = I18N.bateau.askPeople;
       }
 
+      /* ===== FLOW PEOPLE ===== */
       else if (memory.state === STATES.BATEAU_PEOPLE) {
         memory.slots.people = raw;
-        bot.innerHTML = `<b>${I18N[lang].bateau.short}</b><br><br>
-        • Date : ${memory.slots.date}<br>
-        • Personnes : ${memory.slots.people}<br><br>`;
+
+        bot.innerHTML = `
+          <b>${I18N.bateau.short}</b><br><br>
+          • Date : ${memory.slots.date}<br>
+          • Personnes : ${memory.slots.people}<br><br>
+        `;
 
         const a = document.createElement("a");
         a.href = "https://koalendar.com/e/tintorera";
         a.target = "_blank";
         a.className = "kbBookBtn";
-        a.textContent = I18N[lang].bateau.book;
+        a.textContent = I18N.bateau.book;
         bot.appendChild(a);
 
         memory.slots = {};
         setState(STATES.INFO);
       }
 
-      /* ===== REIKI ===== */
-      else if (isReiki(t) && memory.state === STATES.INFO) {
-        bot.innerHTML = `<b>${I18N[lang].reiki.short}</b><br><br>${I18N[lang].reiki.long}`;
-      }
-
-      /* ===== SUITES ===== */
-      else if (isSuites(t) && memory.state === STATES.INFO) {
-        bot.innerHTML = `<b>${I18N[lang].suites.short}</b><br><br>${I18N[lang].suites.long}`;
-      }
-
       else {
-        bot.textContent = I18N[lang].clarify;
+        bot.textContent = I18N.clarify;
       }
 
       typing.style.display = "none";
@@ -205,9 +194,14 @@
     }
 
     sendBtn.onclick = e => { e.preventDefault(); sendMessage(); };
-    input.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); sendMessage(); } };
+    input.onkeydown = e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    };
 
-    console.log("✅ v1.6.6 Concierge ready");
+    console.log("✅ v1.6.6.1 Concierge FIX ready");
   });
 
 })();
