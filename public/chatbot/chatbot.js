@@ -562,6 +562,10 @@ if (prices) {
     if (e.key === "Enter") sendMessage();
   });
 
+
+
+
+
 } // <-- FIN initChatbot()
 
 // Lancement du chatbot
