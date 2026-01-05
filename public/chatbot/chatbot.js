@@ -461,7 +461,7 @@ if (prices) {
   priceDiv.className = "kbPrice";
   priceDiv.innerHTML = `<br><b>💰 Tarifs :</b> ${prices}`;
   bot.appendChild(priceDiv);
-}
+
 
         }
 
