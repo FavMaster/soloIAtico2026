@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.7.7 — ROUTEUR COMPLET STABLE
+ * Version 1.6.7.8 — BOUTONS DE RÉSERVATION
  ****************************************************/
 
 (function SoloIATico() {
@@ -8,7 +8,7 @@
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
   const LANG_KEY = "soloia_lang";
 
-  console.log("Solo’IA’tico Chatbot v1.6.7.7 — FULL ROUTER");
+  console.log("Solo’IA’tico Chatbot v1.6.7.8 — Booking buttons ON");
 
   function ready(fn) {
     if (document.readyState !== "loading") fn();
@@ -78,7 +78,6 @@
         || document.documentElement.lang?.slice(0,2)
         || "fr";
     }
-
     function setLang(lang) {
       localStorage.setItem(LANG_KEY, lang);
     }
@@ -103,16 +102,46 @@
 
     /* ================= UI TEXT ================= */
     const UI = {
-      fr: { more:"Voir la description complète", clarify:"Pouvez-vous préciser votre demande ? 😊",
-            listSuites:"Nous proposons trois hébergements :<br>• Suite Neus<br>• Suite Bourlardes<br>• Chambre Blue Patio" },
-      es: { more:"Ver la descripción completa", clarify:"¿Podría precisar su solicitud? 😊",
-            listSuites:"Ofrecemos tres alojamientos:<br>• Suite Neus<br>• Suite Bourlardes<br>• Habitación Blue Patio" },
-      en: { more:"View full description", clarify:"Could you please clarify your request? 😊",
-            listSuites:"We offer three accommodations:<br>• Suite Neus<br>• Suite Bourlardes<br>• Blue Patio Room" },
-      ca: { more:"Veure la descripció completa", clarify:"Podeu precisar la vostra sol·licitud? 😊",
-            listSuites:"Oferim tres allotjaments:<br>• Suite Neus<br>• Suite Bourlardes<br>• Habitació Blue Patio" },
-      nl: { more:"Volledige beschrijving bekijken", clarify:"Kunt u uw vraag verduidelijken? 😊",
-            listSuites:"Wij bieden drie accommodaties:<br>• Suite Neus<br>• Suite Bourlardes<br>• Blue Patio kamer" }
+      fr: {
+        more: "Voir la description complète",
+        clarify: "Pouvez-vous préciser votre demande ? 😊",
+        bookBoat: "⛵ Réserver la sortie Tintorera",
+        bookReiki: "🧘‍♀️ Réserver une séance Reiki",
+        bookSuite: "🏨 Réserver cette suite",
+        listSuites: "Nous proposons trois hébergements :<br>• Suite Neus<br>• Suite Bourlardes<br>• Chambre Blue Patio"
+      },
+      es: {
+        more: "Ver la descripción completa",
+        clarify: "¿Podría precisar su solicitud? 😊",
+        bookBoat: "⛵ Reservar salida Tintorera",
+        bookReiki: "🧘‍♀️ Reservar sesión de Reiki",
+        bookSuite: "🏨 Reservar esta suite",
+        listSuites: "Ofrecemos tres alojamientos:<br>• Suite Neus<br>• Suite Bourlardes<br>• Habitación Blue Patio"
+      },
+      en: {
+        more: "View full description",
+        clarify: "Could you please clarify your request? 😊",
+        bookBoat: "⛵ Book the Tintorera boat trip",
+        bookReiki: "🧘‍♀️ Book a Reiki session",
+        bookSuite: "🏨 Book this suite",
+        listSuites: "We offer three accommodations:<br>• Suite Neus<br>• Suite Bourlardes<br>• Blue Patio Room"
+      },
+      ca: {
+        more: "Veure la descripció completa",
+        clarify: "Podeu precisar la vostra sol·licitud? 😊",
+        bookBoat: "⛵ Reservar sortida Tintorera",
+        bookReiki: "🧘‍♀️ Reservar sessió de Reiki",
+        bookSuite: "🏨 Reservar aquesta suite",
+        listSuites: "Oferim tres allotjaments:<br>• Suite Neus<br>• Suite Bourlardes<br>• Habitació Blue Patio"
+      },
+      nl: {
+        more: "Volledige beschrijving bekijken",
+        clarify: "Kunt u uw vraag verduidelijken? 😊",
+        bookBoat: "⛵ Tintorera boottocht boeken",
+        bookReiki: "🧘‍♀️ Reiki-sessie boeken",
+        bookSuite: "🏨 Deze suite reserveren",
+        listSuites: "Wij bieden drie accommodaties:<br>• Suite Neus<br>• Suite Bourlardes<br>• Blue Patio kamer"
+      }
     };
 
     /* ================= KB ================= */
@@ -152,7 +181,7 @@
     }
 
     /* ================= RENDER ================= */
-    function renderKB(lang, kb, more=true) {
+    function renderKB(lang, kb, bookBtn=null) {
       const bot = document.createElement("div");
       bot.className = "msg botMsg";
 
@@ -164,20 +193,32 @@
       longDiv.innerHTML = kb.long.replace(/\n/g,"<br>");
       bot.appendChild(longDiv);
 
-      if (more && kb.long) {
-        const btn = document.createElement("button");
-        btn.className = "kbMoreBtn";
-        btn.textContent = UI[lang].more;
-        btn.onclick = e => {
+      if (kb.long) {
+        const moreBtn = document.createElement("button");
+        moreBtn.className = "kbMoreBtn";
+        moreBtn.textContent = UI[lang].more;
+        moreBtn.onclick = e => {
           e.stopPropagation();
           longDiv.style.display = "block";
-          btn.remove();
+          moreBtn.remove();
         };
-        bot.appendChild(btn);
+        bot.appendChild(moreBtn);
       }
+
+      if (bookBtn) bot.appendChild(bookBtn);
 
       bodyEl.appendChild(bot);
       bodyEl.scrollTop = bodyEl.scrollHeight;
+    }
+
+    function bookingButton(label, url) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.className = "kbBookBtn";
+      a.textContent = label;
+      a.onclick = e => e.stopPropagation();
+      return a;
     }
 
     /* ================= SEND ================= */
@@ -195,10 +236,16 @@
 
       try {
         if (r === "tintorera") {
-          renderKB(lang, await loadKB(lang,"03_services/tintorera-bateau.txt"));
+          renderKB(lang,
+            await loadKB(lang,"03_services/tintorera-bateau.txt"),
+            bookingButton(UI[lang].bookBoat,"https://koalendar.com/e/tintorera")
+          );
         }
         else if (r === "reiki") {
-          renderKB(lang, await loadKB(lang,"03_services/reiki.txt"));
+          renderKB(lang,
+            await loadKB(lang,"03_services/reiki.txt"),
+            bookingButton(UI[lang].bookReiki,"https://koalendar.com/e/soloatico-reiki")
+          );
         }
         else if (r === "piscine") {
           renderKB(lang, await loadKB(lang,"03_services/piscine-rooftop.txt"));
@@ -214,7 +261,10 @@
             `<div class="msg botMsg">${UI[lang].listSuites}</div>`);
         }
         else if (r?.startsWith("suite")) {
-          renderKB(lang, await loadKB(lang,`02_suites/${r}.txt`));
+          renderKB(lang,
+            await loadKB(lang,`02_suites/${r}.txt`),
+            bookingButton(UI[lang].bookSuite,`https://soloatico.amenitiz.io/${lang}/booking/room`)
+          );
         }
         else {
           bodyEl.insertAdjacentHTML("beforeend",
@@ -231,7 +281,7 @@
     sendBtn.onclick = e => { e.preventDefault(); sendMessage(); };
     input.onkeydown = e => { if (e.key==="Enter") { e.preventDefault(); sendMessage(); } };
 
-    console.log("✅ Solo’IA’tico v1.6.7.7 — STABLE & COMPLETE");
+    console.log("✅ Solo’IA’tico v1.6.7.8 — READY FOR SLEEP");
   });
 
 })();
