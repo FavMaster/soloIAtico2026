@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.8.0 — LANG PER MESSAGE (STABLE)
+ * Version 1.6.8.1 — FREEZE OFFICIEL
  ****************************************************/
 
 (function SoloIATico() {
@@ -8,7 +8,7 @@
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
   const LANG_KEY = "soloia_lang_manual";
 
-  console.log("Solo’IA’tico Chatbot v1.6.8.0");
+  console.log("Solo’IA’tico Chatbot v1.6.8.1 — FREEZE");
 
   function ready(fn) {
     if (document.readyState !== "loading") fn();
@@ -49,6 +49,17 @@
       e.stopPropagation();
       isOpen = !isOpen;
       chatWin.style.display = isOpen ? "flex" : "none";
+
+      // Welcome message (once)
+      if (isOpen && !chatWin.dataset.welcomed) {
+        const lang = resolveLang("");
+        const welcome = document.createElement("div");
+        welcome.className = "msg botMsg welcomeMsg";
+        welcome.innerHTML = WELCOME[lang] || WELCOME.fr;
+        bodyEl.appendChild(welcome);
+        bodyEl.scrollTop = bodyEl.scrollHeight;
+        chatWin.dataset.welcomed = "1";
+      }
     };
 
     document.addEventListener("click", e => {
@@ -73,7 +84,6 @@
     };
 
     /* ================= LANG LOGIC ================= */
-
     function detectLangFromMessage(t) {
       if (/\b(is er|zwembad|boot)\b/.test(t)) return "nl";
       if (/\b(what|how|is|are|pool|boat)\b/.test(t)) return "en";
@@ -99,30 +109,29 @@
       );
     }
 
-    /* ================= LANG SELECTOR (VISIBLE) ================= */
+    /* ================= LANG SELECTOR (FLAGS) ================= */
     const langBar = document.createElement("div");
     langBar.className = "soloia-langbar";
     langBar.style.cssText = `
       display:flex;
-      gap:6px;
-      padding:6px;
-      border-bottom:1px solid rgba(255,255,255,.1);
+      justify-content:center;
+      gap:10px;
+      padding:6px 0;
+      border-bottom:1px solid rgba(255,255,255,.12);
     `;
     langBar.innerHTML = `
-      <button data-lang="fr">FR</button>
-      <button data-lang="es">ES</button>
-      <button data-lang="en">EN</button>
-      <button data-lang="ca">CAT</button>
-      <button data-lang="nl">NL</button>
+      <button data-lang="fr" title="Français">🇫🇷</button>
+      <button data-lang="es" title="Español">🇪🇸</button>
+      <button data-lang="en" title="English">🇬🇧</button>
+      <button data-lang="ca" title="Català">🇨🇦</button>
+      <button data-lang="nl" title="Nederlands">🇳🇱</button>
     `;
-
     langBar.querySelectorAll("button").forEach(btn => {
       btn.onclick = e => {
         e.stopPropagation();
         setManualLang(btn.dataset.lang);
       };
     });
-
     chatWin.prepend(langBar);
 
     /* ================= UI TEXT ================= */
@@ -154,6 +163,45 @@
         listSuites:"Wij bieden drie accommodaties:<br>• Suite Neus<br>• Suite Bourlardes<br>• Blue Patio kamer"}
     };
 
+    /* ================= WELCOME ================= */
+    const WELCOME = {
+      fr:`👋 <b>Bonjour et bienvenue !</b><br>Je suis <b>Solo’IA’tico Assistant</b>.<br><br>
+          Posez-moi vos questions concernant :<br>
+          • Suites & Réservation<br>
+          • Bateau Tintorera<br>
+          • Reiki & Bien-être<br>
+          • Que faire à L’Escala<br><br>
+          <b>Comment puis-je vous aider ?</b>`,
+      en:`👋 <b>Hello and welcome!</b><br>I’m <b>Solo’IA’tico Assistant</b>.<br><br>
+          You can ask me about:<br>
+          • Suites & Booking<br>
+          • Tintorera Boat<br>
+          • Reiki & Wellness<br>
+          • Things to do in L’Escala<br><br>
+          <b>How can I help you?</b>`,
+      es:`👋 <b>¡Hola y bienvenido!</b><br>Soy <b>Solo’IA’tico Assistant</b>.<br><br>
+          Puedes preguntarme sobre:<br>
+          • Suites y Reservas<br>
+          • Barco Tintorera<br>
+          • Reiki y Bienestar<br>
+          • Qué hacer en L’Escala<br><br>
+          <b>¿En qué puedo ayudarte?</b>`,
+      ca:`👋 <b>Hola i benvingut!</b><br>Sóc <b>Solo’IA’tico Assistant</b>.<br><br>
+          Em pots preguntar sobre:<br>
+          • Suites i Reserves<br>
+          • Vaixell Tintorera<br>
+          • Reiki i Benestar<br>
+          • Què fer a L’Escala<br><br>
+          <b>Com et puc ajudar?</b>`,
+      nl:`👋 <b>Hallo en welkom!</b><br>Ik ben <b>Solo’IA’tico Assistant</b>.<br><br>
+          Je kunt mij vragen stellen over:<br>
+          • Suites & Reserveren<br>
+          • Tintorera boottocht<br>
+          • Reiki & Welzijn<br>
+          • Wat te doen in L’Escala<br><br>
+          <b>Waarmee kan ik je helpen?</b>`
+    };
+
     /* ================= KB HELPERS ================= */
     function parseKB(text){
       const s=text.match(/SHORT:\s*([\s\S]*?)\n/i);
@@ -168,7 +216,7 @@
       return parseKB(await r.text());
     }
 
-    /* ================= NLP ROUTER ================= */
+    /* ================= NLP ================= */
     function norm(t){
       return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     }
