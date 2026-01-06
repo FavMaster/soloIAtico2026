@@ -1,13 +1,13 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.1 — FLOW SUITES + PETIT-DEJEUNER
+ * Version 1.7.2 — FLOW INFOS PRATIQUES (KB 06)
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
 
-  console.log("Solo’IA’tico Chatbot v1.7.1 — SUITES + BREAKFAST");
+  console.log("Solo’IA’tico Chatbot v1.7.2 — INFOS PRATIQUES");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -57,23 +57,17 @@
     });
 
     /* ===== WHATSAPP ===== */
-    const waLaurent = document.getElementById("waLaurent");
-    if (waLaurent) {
-      waLaurent.addEventListener("click", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        window.open("https://wa.me/34621210642", "_blank");
-      });
-    }
+    document.getElementById("waLaurent")?.addEventListener("click", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.open("https://wa.me/34621210642", "_blank");
+    });
 
-    const waSophia = document.getElementById("waSophia");
-    if (waSophia) {
-      waSophia.addEventListener("click", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        window.open("https://wa.me/34621128303", "_blank");
-      });
-    }
+    document.getElementById("waSophia")?.addEventListener("click", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.open("https://wa.me/34621128303", "_blank");
+    });
 
     /* ===== LANG ===== */
     function pageLang() {
@@ -81,10 +75,10 @@
     }
 
     function detectLang(t) {
-      if (/is er|kamer|kamers|ontbijt/.test(t)) return "nl";
-      if (/room|rooms|breakfast/.test(t)) return "en";
-      if (/habitacion|habitaciones|desayuno/.test(t)) return "es";
-      if (/habitacio|habitacions|esmorzar/.test(t)) return "ca";
+      if (/is er|kamer|kamers|ontbijt|informatie/.test(t)) return "nl";
+      if (/room|rooms|breakfast|practical|information/.test(t)) return "en";
+      if (/habitacion|habitaciones|desayuno|informacion/.test(t)) return "es";
+      if (/habitacio|habitacions|esmorzar|informacions/.test(t)) return "ca";
       return pageLang();
     }
 
@@ -102,17 +96,18 @@
 
     function intent(t) {
 
-      /* SUITES */
       if (/suite|suites|chambre|chambres|room|rooms|kamer|kamers|habitacion/.test(t)) {
         return suiteSlug(t) ? "suite_detail" : "suite_list";
       }
 
-      /* PETIT-DEJEUNER */
       if (/petit dejeuner|petit-dejeuner|breakfast|ontbijt|esmorzar|desayuno/.test(t)) {
         return "breakfast";
       }
 
-      /* AUTRES FLOWS EXISTANTS */
+      if (/infos pratiques|information|practical|useful|informatie|informacions/.test(t)) {
+        return "infos_pratiques";
+      }
+
       if (/tintorera|bateau|boat/.test(t)) return "tintorera";
       if (/reiki|riki/.test(t)) return "reiki";
       if (/piscine|pool|zwembad/.test(t)) return "piscine";
@@ -120,7 +115,7 @@
       return null;
     }
 
-    /* ===== KB PARSING ===== */
+    /* ===== KB PARSER ===== */
     function parseKB(txt) {
       return {
         short: (txt.match(/SHORT:\s*([\s\S]*?)\n/i) || [,""])[1].trim(),
@@ -128,7 +123,7 @@
       };
     }
 
-    /* ===== UI TEXT ===== */
+    /* ===== UI ===== */
     const UI = {
       fr: {
         list: "Nous proposons trois hébergements au Solo Ático :<br>• Suite Neus<br>• Suite Bourlardes<br>• Chambre Blue Patio",
@@ -173,7 +168,7 @@
 
       try {
 
-        /* ===== LIST SUITES ===== */
+        /* LIST SUITES */
         if (i === "suite_list") {
           bodyEl.insertAdjacentHTML("beforeend",
             `<div class="msg botMsg">${UI[lang].list}</div>`);
@@ -181,7 +176,7 @@
           return;
         }
 
-        /* ===== SUITE DETAIL ===== */
+        /* SUITE DETAIL */
         if (i === "suite_detail") {
           const file = suiteSlug(t);
           let r = await fetch(`${KB_BASE_URL}/kb/${lang}/02_suites/${file}`);
@@ -198,7 +193,7 @@
             const more = document.createElement("button");
             more.className = "kbMoreBtn";
             more.textContent = UI[lang].more;
-            more.onclick = (e) => {
+            more.onclick = e => {
               e.preventDefault();
               e.stopPropagation();
               more.remove();
@@ -223,7 +218,7 @@
           return;
         }
 
-        /* ===== PETIT-DEJEUNER ===== */
+        /* PETIT-DEJEUNER */
         if (i === "breakfast") {
           let r = await fetch(`${KB_BASE_URL}/kb/${lang}/03_services/petit-dejeuner.txt`);
           if (!r.ok && lang !== "fr") {
@@ -239,7 +234,7 @@
             const more = document.createElement("button");
             more.className = "kbMoreBtn";
             more.textContent = UI[lang].more;
-            more.onclick = (e) => {
+            more.onclick = e => {
               e.preventDefault();
               e.stopPropagation();
               more.remove();
@@ -255,7 +250,38 @@
           return;
         }
 
-        /* ===== FALLBACK ===== */
+        /* INFOS PRATIQUES */
+        if (i === "infos_pratiques") {
+          let r = await fetch(`${KB_BASE_URL}/kb/${lang}/06_infos-pratiques/infos-pratiques.txt`);
+          if (!r.ok && lang !== "fr") {
+            r = await fetch(`${KB_BASE_URL}/kb/fr/06_infos-pratiques/infos-pratiques.txt`);
+          }
+          const kb = parseKB(await r.text());
+
+          const bot = document.createElement("div");
+          bot.className = "msg botMsg";
+          bot.innerHTML = `<b>${kb.short}</b>`;
+
+          if (kb.long) {
+            const more = document.createElement("button");
+            more.className = "kbMoreBtn";
+            more.textContent = UI[lang].more;
+            more.onclick = e => {
+              e.preventDefault();
+              e.stopPropagation();
+              more.remove();
+              bot.innerHTML += `<br><br>${kb.long}`;
+              bodyEl.scrollTop = bodyEl.scrollHeight;
+            };
+            bot.appendChild(document.createElement("br"));
+            bot.appendChild(more);
+          }
+
+          bodyEl.appendChild(bot);
+          bodyEl.scrollTop = bodyEl.scrollHeight;
+          return;
+        }
+
         bodyEl.insertAdjacentHTML("beforeend",
           `<div class="msg botMsg">🤔 Pouvez-vous préciser votre demande ?</div>`);
 
