@@ -1,13 +1,13 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.0.1 — FLOW SUITES (SYNTAX FIX)
+ * Version 1.7.1 — FLOW SUITES + PETIT-DEJEUNER
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
 
-  console.log("Solo’IA’tico Chatbot v1.7.0.1 — FLOW SUITES FIX");
+  console.log("Solo’IA’tico Chatbot v1.7.1 — SUITES + BREAKFAST");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -56,7 +56,7 @@
       }
     });
 
-    /* ===== WHATSAPP (FIX SYNTAX) ===== */
+    /* ===== WHATSAPP ===== */
     const waLaurent = document.getElementById("waLaurent");
     if (waLaurent) {
       waLaurent.addEventListener("click", e => {
@@ -81,16 +81,16 @@
     }
 
     function detectLang(t) {
-      if (/is er|kamer|kamers/.test(t)) return "nl";
-      if (/room|rooms/.test(t)) return "en";
-      if (/habitacion|habitaciones/.test(t)) return "es";
-      if (/habitacio|habitacions/.test(t)) return "ca";
+      if (/is er|kamer|kamers|ontbijt/.test(t)) return "nl";
+      if (/room|rooms|breakfast/.test(t)) return "en";
+      if (/habitacion|habitaciones|desayuno/.test(t)) return "es";
+      if (/habitacio|habitacions|esmorzar/.test(t)) return "ca";
       return pageLang();
     }
 
     /* ===== NLP ===== */
     function norm(t) {
-      return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+      return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
     function suiteSlug(t) {
@@ -101,25 +101,26 @@
     }
 
     function intent(t) {
+
+      /* SUITES */
       if (/suite|suites|chambre|chambres|room|rooms|kamer|kamers|habitacion/.test(t)) {
         return suiteSlug(t) ? "suite_detail" : "suite_list";
       }
+
+      /* PETIT-DEJEUNER */
+      if (/petit dejeuner|petit-dejeuner|breakfast|ontbijt|esmorzar|desayuno/.test(t)) {
+        return "breakfast";
+      }
+
+      /* AUTRES FLOWS EXISTANTS */
       if (/tintorera|bateau|boat/.test(t)) return "tintorera";
       if (/reiki|riki/.test(t)) return "reiki";
       if (/piscine|pool|zwembad/.test(t)) return "piscine";
+
       return null;
     }
 
-    /* ===== KB ===== */
-    async function loadKB(lang, path) {
-      let r = await fetch(`${KB_BASE_URL}/kb/${lang}/02_suites/${path}`);
-      if (!r.ok && lang !== "fr") {
-        r = await fetch(`${KB_BASE_URL}/kb/fr/02_suites/${path}`);
-      }
-      if (!r.ok) throw "KB introuvable";
-      return r.text();
-    }
-
+    /* ===== KB PARSING ===== */
     function parseKB(txt) {
       return {
         short: (txt.match(/SHORT:\s*([\s\S]*?)\n/i) || [,""])[1].trim(),
@@ -156,7 +157,7 @@
       }
     };
 
-    /* ===== SEND ===== */
+    /* ===== SEND MESSAGE ===== */
     async function sendMessage() {
       if (!input.value.trim()) return;
 
@@ -172,6 +173,7 @@
 
       try {
 
+        /* ===== LIST SUITES ===== */
         if (i === "suite_list") {
           bodyEl.insertAdjacentHTML("beforeend",
             `<div class="msg botMsg">${UI[lang].list}</div>`);
@@ -179,9 +181,14 @@
           return;
         }
 
+        /* ===== SUITE DETAIL ===== */
         if (i === "suite_detail") {
           const file = suiteSlug(t);
-          const kb = parseKB(await loadKB(lang, file));
+          let r = await fetch(`${KB_BASE_URL}/kb/${lang}/02_suites/${file}`);
+          if (!r.ok && lang !== "fr") {
+            r = await fetch(`${KB_BASE_URL}/kb/fr/02_suites/${file}`);
+          }
+          const kb = parseKB(await r.text());
 
           const bot = document.createElement("div");
           bot.className = "msg botMsg";
@@ -192,13 +199,12 @@
             more.className = "kbMoreBtn";
             more.textContent = UI[lang].more;
             more.onclick = (e) => {
-  e.preventDefault();
-  e.stopPropagation();   // ⭐ LIGNE CLÉ
-  more.remove();
-  bot.innerHTML += `<br><br>${kb.long}`;
-  bodyEl.scrollTop = bodyEl.scrollHeight;
-};
-
+              e.preventDefault();
+              e.stopPropagation();
+              more.remove();
+              bot.innerHTML += `<br><br>${kb.long}`;
+              bodyEl.scrollTop = bodyEl.scrollHeight;
+            };
             bot.appendChild(document.createElement("br"));
             bot.appendChild(more);
           }
@@ -217,6 +223,39 @@
           return;
         }
 
+        /* ===== PETIT-DEJEUNER ===== */
+        if (i === "breakfast") {
+          let r = await fetch(`${KB_BASE_URL}/kb/${lang}/03_services/petit-dejeuner.txt`);
+          if (!r.ok && lang !== "fr") {
+            r = await fetch(`${KB_BASE_URL}/kb/fr/03_services/petit-dejeuner.txt`);
+          }
+          const kb = parseKB(await r.text());
+
+          const bot = document.createElement("div");
+          bot.className = "msg botMsg";
+          bot.innerHTML = `<b>${kb.short}</b>`;
+
+          if (kb.long) {
+            const more = document.createElement("button");
+            more.className = "kbMoreBtn";
+            more.textContent = UI[lang].more;
+            more.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              more.remove();
+              bot.innerHTML += `<br><br>${kb.long}`;
+              bodyEl.scrollTop = bodyEl.scrollHeight;
+            };
+            bot.appendChild(document.createElement("br"));
+            bot.appendChild(more);
+          }
+
+          bodyEl.appendChild(bot);
+          bodyEl.scrollTop = bodyEl.scrollHeight;
+          return;
+        }
+
+        /* ===== FALLBACK ===== */
         bodyEl.insertAdjacentHTML("beforeend",
           `<div class="msg botMsg">🤔 Pouvez-vous préciser votre demande ?</div>`);
 
