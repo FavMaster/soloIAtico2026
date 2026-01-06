@@ -1,13 +1,13 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.0 — FLOW SUITES
+ * Version 1.7.0.1 — FLOW SUITES (SYNTAX FIX)
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
 
-  console.log("Solo’IA’tico Chatbot v1.7.0 — FLOW SUITES");
+  console.log("Solo’IA’tico Chatbot v1.7.0.1 — FLOW SUITES FIX");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -33,16 +33,21 @@
     const input   = document.getElementById("userInput");
     const bodyEl  = document.getElementById("chatBody");
 
+    if (!chatWin || !openBtn || !sendBtn || !input || !bodyEl) {
+      console.error("❌ Chatbot DOM incomplet");
+      return;
+    }
+
     /* ===== OPEN / CLOSE ===== */
     let isOpen = false;
     chatWin.style.display = "none";
 
-    openBtn.onclick = e => {
+    openBtn.addEventListener("click", e => {
       e.preventDefault();
       e.stopPropagation();
       isOpen = !isOpen;
       chatWin.style.display = isOpen ? "flex" : "none";
-    };
+    });
 
     document.addEventListener("click", e => {
       if (isOpen && !chatWin.contains(e.target) && !openBtn.contains(e.target)) {
@@ -51,15 +56,24 @@
       }
     });
 
-    /* ===== WHATSAPP ===== */
-    document.getElementById("waLaurent")?.onclick = e => {
-      e.preventDefault(); e.stopPropagation();
-      window.open("https://wa.me/34621210642", "_blank");
-    };
-    document.getElementById("waSophia")?.onclick = e => {
-      e.preventDefault(); e.stopPropagation();
-      window.open("https://wa.me/34621128303", "_blank");
-    };
+    /* ===== WHATSAPP (FIX SYNTAX) ===== */
+    const waLaurent = document.getElementById("waLaurent");
+    if (waLaurent) {
+      waLaurent.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open("https://wa.me/34621210642", "_blank");
+      });
+    }
+
+    const waSophia = document.getElementById("waSophia");
+    if (waSophia) {
+      waSophia.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open("https://wa.me/34621128303", "_blank");
+      });
+    }
 
     /* ===== LANG ===== */
     function pageLang() {
@@ -158,7 +172,6 @@
 
       try {
 
-        /* LIST SUITES */
         if (i === "suite_list") {
           bodyEl.insertAdjacentHTML("beforeend",
             `<div class="msg botMsg">${UI[lang].list}</div>`);
@@ -166,7 +179,6 @@
           return;
         }
 
-        /* SUITE DETAIL */
         if (i === "suite_detail") {
           const file = suiteSlug(t);
           const kb = parseKB(await loadKB(lang, file));
@@ -202,7 +214,6 @@
           return;
         }
 
-        /* FALLBACK OTHER FLOWS (déjà existants) */
         bodyEl.insertAdjacentHTML("beforeend",
           `<div class="msg botMsg">🤔 Pouvez-vous préciser votre demande ?</div>`);
 
@@ -213,8 +224,13 @@
       }
     }
 
-    sendBtn.onclick = sendMessage;
-    input.onkeydown = e => { if (e.key === "Enter") sendMessage(); };
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
 
   });
 
