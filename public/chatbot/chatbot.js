@@ -1,13 +1,13 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.3 — INFOS PRATIQUES SMART & PREMIUM
+ * Version 1.7.4 — FLOW 01_PRESENTATION
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
 
-  console.log("Solo’IA’tico Chatbot v1.7.3 — INFOS SMART");
+  console.log("Solo’IA’tico Chatbot v1.7.4 — PRESENTATION");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -57,21 +57,15 @@
     });
 
     /* ================= WHATSAPP ================= */
-    const waLaurent = document.getElementById("waLaurent");
-    if (waLaurent) {
-      waLaurent.addEventListener("click", e => {
-        e.preventDefault(); e.stopPropagation();
-        window.open("https://wa.me/34621210642", "_blank");
-      });
-    }
+    document.getElementById("waLaurent")?.addEventListener("click", e => {
+      e.preventDefault(); e.stopPropagation();
+      window.open("https://wa.me/34621210642", "_blank");
+    });
 
-    const waSophia = document.getElementById("waSophia");
-    if (waSophia) {
-      waSophia.addEventListener("click", e => {
-        e.preventDefault(); e.stopPropagation();
-        window.open("https://wa.me/34621128303", "_blank");
-      });
-    }
+    document.getElementById("waSophia")?.addEventListener("click", e => {
+      e.preventDefault(); e.stopPropagation();
+      window.open("https://wa.me/34621128303", "_blank");
+    });
 
     /* ================= LANG ================= */
     function pageLang() {
@@ -79,10 +73,10 @@
     }
 
     function detectLang(t) {
-      if (/is er|ontbijt|informatie|wifi|parking/.test(t)) return "nl";
-      if (/check|arrival|wifi|parking|information/.test(t)) return "en";
-      if (/informacion|wifi|aparcamiento|check/.test(t)) return "es";
-      if (/informacions|wifi|aparcament|check/.test(t)) return "ca";
+      if (/is er|informatie|wat is/.test(t)) return "nl";
+      if (/tell me|about|presentation|what is/.test(t)) return "en";
+      if (/presentacion|que es|informacion/.test(t)) return "es";
+      if (/presentacio|que es|informacio/.test(t)) return "ca";
       return pageLang();
     }
 
@@ -93,6 +87,12 @@
 
     function intent(t) {
 
+      /* PRESENTATION */
+      if (/presentation|présentation|presentacion|presentacio|about|wat is|what is solo/.test(t)) {
+        return "presentation";
+      }
+
+      /* INFOS PRATIQUES */
       if (/infos pratiques|information|practical|useful|informatie|informacions/.test(t))
         return "infos_pratiques";
 
@@ -102,7 +102,8 @@
       if (/wifi|internet/.test(t)) return "wifi";
       if (/chien|animal|dog|pet/.test(t)) return "animaux";
 
-      if (/suite|chambre|room|kamer|habitacion/.test(t))
+      /* AUTRES FLOWS EXISTANTS */
+      if (/suite|suites|chambre|chambres|room|rooms|kamer|kamers|habitacion/.test(t))
         return "suite_list";
 
       if (/petit dejeuner|breakfast|ontbijt|esmorzar|desayuno/.test(t))
@@ -123,42 +124,23 @@
       };
     }
 
-    async function loadInfosKB(lang) {
-      let r = await fetch(`${KB_BASE_URL}/kb/${lang}/06_infos-pratiques/infos-pratiques.txt`);
+    async function loadKB(lang, path) {
+      let r = await fetch(`${KB_BASE_URL}/kb/${lang}/${path}`);
       if (!r.ok && lang !== "fr") {
-        r = await fetch(`${KB_BASE_URL}/kb/fr/06_infos-pratiques/infos-pratiques.txt`);
+        r = await fetch(`${KB_BASE_URL}/kb/fr/${path}`);
       }
-      if (!r.ok) throw "KB infos pratiques introuvable";
+      if (!r.ok) throw "KB introuvable";
       return parseKB(await r.text());
     }
 
     /* ================= UI ================= */
     const UI = {
-      fr: {
-        more: "Voir toutes les infos pratiques"
-      },
-      en: {
-        more: "View all practical information"
-      },
-      es: {
-        more: "Ver toda la información práctica"
-      },
-      ca: {
-        more: "Veure tota la informació pràctica"
-      },
-      nl: {
-        more: "Alle praktische informatie bekijken"
-      }
+      fr: { more: "Voir la description complète" },
+      en: { more: "View full description" },
+      es: { more: "Ver la descripción completa" },
+      ca: { more: "Veure la descripció completa" },
+      nl: { more: "Volledige beschrijving bekijken" }
     };
-
-    /* ================= FORMAT LONG ================= */
-    function formatLong(txt) {
-      return txt
-        .split("\n")
-        .filter(l => l.trim())
-        .map(l => `• ${l}`)
-        .join("<br>");
-    }
 
     /* ================= SEND ================= */
     async function sendMessage() {
@@ -176,43 +158,35 @@
 
       try {
 
-        /* ===== INFOS PRATIQUES SMART ===== */
-        if (["infos_pratiques","checkin","checkout","parking","wifi","animaux"].includes(i)) {
+        /* ===== PRESENTATION ===== */
+        if (i === "presentation") {
+          const kb = await loadKB(lang, "01_presentation/presentation.txt");
 
-          const kb = await loadInfosKB(lang);
           const bot = document.createElement("div");
           bot.className = "msg botMsg";
+          bot.innerHTML = `<b>${kb.short}</b>`;
 
-          let intro = kb.short;
-
-          if (i === "checkin") intro = "⏰ " + kb.short;
-          if (i === "checkout") intro = "🕘 " + kb.short;
-          if (i === "parking") intro = "🅿️ " + kb.short;
-          if (i === "wifi") intro = "📶 " + kb.short;
-          if (i === "animaux") intro = "🐶 " + kb.short;
-
-          bot.innerHTML = `<b>${intro}</b>`;
-
-          const more = document.createElement("button");
-          more.className = "kbMoreBtn";
-          more.textContent = UI[lang].more;
-
-          more.onclick = e => {
-            e.preventDefault();
-            e.stopPropagation();
-            more.remove();
-            bot.innerHTML += `<br><br>${formatLong(kb.long)}`;
-            bodyEl.scrollTop = bodyEl.scrollHeight;
-          };
-
-          bot.appendChild(document.createElement("br"));
-          bot.appendChild(more);
+          if (kb.long) {
+            const more = document.createElement("button");
+            more.className = "kbMoreBtn";
+            more.textContent = UI[lang].more;
+            more.onclick = e => {
+              e.preventDefault();
+              e.stopPropagation();
+              more.remove();
+              bot.innerHTML += `<br><br>${kb.long}`;
+              bodyEl.scrollTop = bodyEl.scrollHeight;
+            };
+            bot.appendChild(document.createElement("br"));
+            bot.appendChild(more);
+          }
 
           bodyEl.appendChild(bot);
           bodyEl.scrollTop = bodyEl.scrollHeight;
           return;
         }
 
+        /* ===== FALLBACK ===== */
         bodyEl.insertAdjacentHTML("beforeend",
           `<div class="msg botMsg">🤔 Pouvez-vous préciser votre demande ?</div>`);
 
