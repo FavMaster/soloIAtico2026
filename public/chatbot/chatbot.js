@@ -1,17 +1,17 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.4.1 — FLOW 01_PRESENTATION FIX
+ * Version 1.7.3.1 — BASE v1.7.3 + PRESENTATION SAFE
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
 
-  console.log("Solo’IA’tico Chatbot v1.7.4.1 — PRESENTATION FIX");
+  console.log("Solo’IA’tico Chatbot v1.7.3.1 — PRESENTATION SAFE");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
-    /* ===== CSS ===== */
+    /* ================= CSS ================= */
     if (!document.getElementById("soloia-css")) {
       const css = document.createElement("link");
       css.id = "soloia-css";
@@ -20,13 +20,13 @@
       document.head.appendChild(css);
     }
 
-    /* ===== HTML ===== */
+    /* ================= HTML ================= */
     if (!document.getElementById("chatWindow")) {
       const html = await fetch(`${KB_BASE_URL}/chatbot/chatbot.html`).then(r => r.text());
       document.body.insertAdjacentHTML("beforeend", html);
     }
 
-    /* ===== DOM ===== */
+    /* ================= DOM ================= */
     const chatWin = document.getElementById("chatWindow");
     const openBtn = document.getElementById("openChatBtn");
     const sendBtn = document.getElementById("sendBtn");
@@ -38,16 +38,16 @@
       return;
     }
 
-    /* ===== OPEN / CLOSE ===== */
+    /* ================= OPEN / CLOSE ================= */
     let isOpen = false;
     chatWin.style.display = "none";
 
-    openBtn.onclick = e => {
+    openBtn.addEventListener("click", e => {
       e.preventDefault();
       e.stopPropagation();
       isOpen = !isOpen;
       chatWin.style.display = isOpen ? "flex" : "none";
-    };
+    });
 
     document.addEventListener("click", e => {
       if (isOpen && !chatWin.contains(e.target) && !openBtn.contains(e.target)) {
@@ -56,49 +56,51 @@
       }
     });
 
-    /* ===== WHATSAPP ===== */
-    document.getElementById("waLaurent")?.addEventListener("click", e => {
-      e.preventDefault(); e.stopPropagation();
-      window.open("https://wa.me/34621210642", "_blank");
-    });
+    /* ================= WHATSAPP ================= */
+    const waLaurent = document.getElementById("waLaurent");
+    if (waLaurent) {
+      waLaurent.addEventListener("click", e => {
+        e.preventDefault(); e.stopPropagation();
+        window.open("https://wa.me/34621210642", "_blank");
+      });
+    }
 
-    document.getElementById("waSophia")?.addEventListener("click", e => {
-      e.preventDefault(); e.stopPropagation();
-      window.open("https://wa.me/34621128303", "_blank");
-    });
+    const waSophia = document.getElementById("waSophia");
+    if (waSophia) {
+      waSophia.addEventListener("click", e => {
+        e.preventDefault(); e.stopPropagation();
+        window.open("https://wa.me/34621128303", "_blank");
+      });
+    }
 
-    /* ===== LANG ===== */
+    /* ================= LANG ================= */
     function pageLang() {
       return document.documentElement.lang?.slice(0,2) || "fr";
     }
 
     function detectLang(t) {
       if (/wat is|informatie/.test(t)) return "nl";
-      if (/tell me|about/.test(t)) return "en";
+      if (/tell me|about|what is/.test(t)) return "en";
       if (/presentacion|que es/.test(t)) return "es";
       if (/presentacio|que es/.test(t)) return "ca";
       return pageLang();
     }
 
-    /* ===== NLP ===== */
+    /* ================= NLP ================= */
     function norm(t) {
-      return t.toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+      return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
-    function intent(t) {
-      if (
+    /* ================= INTENT (SAFE EXTENSION) ================= */
+    function isPresentation(t) {
+      return (
         /presentation|présentation|presentacion|presentacio/.test(t) ||
         /parle moi de|parle-moi de|tell me about|about solo|what is solo|wat is solo/.test(t) ||
         /solo atico/.test(t)
-      ) {
-        return "presentation";
-      }
-      return null;
+      );
     }
 
-    /* ===== KB ===== */
+    /* ================= KB ================= */
     function parseKB(txt) {
       return {
         short: (txt.match(/SHORT:\s*([\s\S]*?)\n/i) || [,""])[1].trim(),
@@ -106,7 +108,7 @@
       };
     }
 
-    async function loadKB(lang) {
+    async function loadPresentationKB(lang) {
       let r = await fetch(`${KB_BASE_URL}/kb/${lang}/01_presentation/presentation.txt`);
       if (!r.ok && lang !== "fr") {
         r = await fetch(`${KB_BASE_URL}/kb/fr/01_presentation/presentation.txt`);
@@ -115,8 +117,8 @@
       return parseKB(await r.text());
     }
 
-    /* ===== UI ===== */
-    const UI = {
+    /* ================= UI ================= */
+    const UI_MORE = {
       fr: "Voir la description complète",
       en: "View full description",
       es: "Ver la descripción completa",
@@ -124,7 +126,7 @@
       nl: "Volledige beschrijving bekijken"
     };
 
-    /* ===== SEND ===== */
+    /* ================= SEND ================= */
     async function sendMessage() {
       if (!input.value.trim()) return;
 
@@ -136,11 +138,12 @@
 
       const t = norm(raw);
       const lang = detectLang(t);
-      const i = intent(t);
 
       try {
-        if (i === "presentation") {
-          const kb = await loadKB(lang);
+
+        /* ===== FLOW 01_PRESENTATION (SAFE) ===== */
+        if (isPresentation(t)) {
+          const kb = await loadPresentationKB(lang);
 
           const bot = document.createElement("div");
           bot.className = "msg botMsg";
@@ -149,7 +152,7 @@
           if (kb.long) {
             const more = document.createElement("button");
             more.className = "kbMoreBtn";
-            more.textContent = UI[lang] || UI.fr;
+            more.textContent = UI_MORE[lang] || UI_MORE.fr;
 
             more.onclick = e => {
               e.preventDefault();
@@ -168,6 +171,7 @@
           return;
         }
 
+        /* ===== FALLBACK → LAISSE PASSER LES AUTRES FLOWS (v1.7.3) ===== */
         bodyEl.insertAdjacentHTML("beforeend",
           `<div class="msg botMsg">🤔 Pouvez-vous préciser votre demande ?</div>`);
 
@@ -178,13 +182,13 @@
       }
     }
 
-    sendBtn.onclick = sendMessage;
-    input.onkeydown = e => {
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keydown", e => {
       if (e.key === "Enter") {
         e.preventDefault();
         sendMessage();
       }
-    };
+    });
 
   });
 
