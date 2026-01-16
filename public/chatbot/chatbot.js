@@ -1,14 +1,14 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.1 — PRIORITÉ HÉBERGEMENTS
+ * Version 1.7.2 — SUITES & CHAMBRE (KB RÉELLE)
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
-  const BOOKING_URL = "https://www.amenitiz.io/soloatico"; // ← URL Amenitiz
+  const BOOKING_URL = "https://www.amenitiz.io/soloatico";
 
-  console.log("Solo’IA’tico Chatbot v1.7.1 — HOTEL FIRST");
+  console.log("Solo’IA’tico Chatbot v1.7.2 — SUITES FIRST");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -60,28 +60,22 @@
     }
 
     function detectLang(t) {
-      if (/is er|zwembad|kamer/.test(t)) return "nl";
-      if (/room|suite|book/.test(t)) return "en";
+      if (/kamer|suite/.test(t)) return "nl";
+      if (/room|suite/.test(t)) return "en";
       if (/habitacion|suite/.test(t)) return "es";
-      if (/habitacio|suite/.test(t)) return "ca";
+      if (/habitacio|suite/.test(t)) return "cat";
       return pageLang();
     }
 
-    /* ===== NLP ===== */
     function norm(t) {
       return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
-    function intent(t) {
-      if (/suite|chambre|room|habitacion|habitacio/.test(t)) return "rooms";
-      return "rooms"; // 🔥 PRIORITÉ ABSOLUE
-    }
-
     /* ===== KB ===== */
     async function loadKB(lang, file) {
-      let r = await fetch(`${KB_BASE_URL}/kb/${lang}/${file}`);
+      let r = await fetch(`${KB_BASE_URL}/kb/${lang}/02_suites/${file}`);
       if (!r.ok && lang !== "fr") {
-        r = await fetch(`${KB_BASE_URL}/kb/fr/${file}`);
+        r = await fetch(`${KB_BASE_URL}/kb/fr/02_suites/${file}`);
       }
       if (!r.ok) throw "KB introuvable";
       return r.text();
@@ -94,12 +88,12 @@
       };
     }
 
-    /* ===== UI TEXT ===== */
+    /* ===== UI ===== */
     const UI = {
       fr: { more: "Voir la description complète", book: "🏨 Réserver" },
       en: { more: "View full description", book: "🏨 Book now" },
       es: { more: "Ver la descripción completa", book: "🏨 Reservar" },
-      ca: { more: "Veure la descripció completa", book: "🏨 Reservar" },
+      cat:{ more: "Veure la descripció completa", book: "🏨 Reservar" },
       nl: { more: "Volledige beschrijving bekijken", book: "🏨 Reserveren" }
     };
 
@@ -113,52 +107,55 @@
       bodyEl.insertAdjacentHTML("beforeend",
         `<div class="msg userMsg">${raw}</div>`);
 
-      const t = norm(raw);
-      const lang = detectLang(t);
+      const lang = detectLang(norm(raw));
 
       try {
-        // 👉 FICHIER KB HÉBERGEMENTS
-        const file = "01_rooms/suites-et-chambre.txt";
+        const rooms = [
+          { title: "🛏 Suite Neus", file: "suite-neus.txt" },
+          { title: "🛏 Suite Bourlardes", file: "suite-bourlardes.txt" },
+          { title: "🛏 Chambre Blue Patio", file: "room-blue-patio.txt" }
+        ];
 
-        const kb = parseKB(await loadKB(lang, file));
+        for (const room of rooms) {
+          const kb = parseKB(await loadKB(lang, room.file));
 
-        const bot = document.createElement("div");
-        bot.className = "msg botMsg";
+          const bot = document.createElement("div");
+          bot.className = "msg botMsg";
 
-        bot.innerHTML = `<b>${kb.short}</b>`;
+          bot.innerHTML = `<b>${room.title}</b><br>${kb.short}`;
 
-        if (kb.long) {
-          const moreBtn = document.createElement("button");
-          moreBtn.className = "kbMoreBtn";
-          moreBtn.textContent = UI[lang].more;
+          if (kb.long) {
+            const moreBtn = document.createElement("button");
+            moreBtn.className = "kbMoreBtn";
+            moreBtn.textContent = UI[lang].more;
 
-          moreBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            moreBtn.remove();
+            moreBtn.addEventListener("click", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              moreBtn.remove();
 
-            const longDiv = document.createElement("div");
-            longDiv.className = "kbLong";
-            longDiv.innerHTML = `<br>${kb.long}`;
-            bot.appendChild(longDiv);
-            bodyEl.scrollTop = bodyEl.scrollHeight;
-          });
+              const longDiv = document.createElement("div");
+              longDiv.className = "kbLong";
+              longDiv.innerHTML = `<br>${kb.long}`;
+              bot.appendChild(longDiv);
+              bodyEl.scrollTop = bodyEl.scrollHeight;
+            });
 
-          bot.appendChild(document.createElement("br"));
-          bot.appendChild(moreBtn);
+            bot.appendChild(document.createElement("br"));
+            bot.appendChild(moreBtn);
+          }
+
+          bodyEl.appendChild(bot);
         }
 
-        // 🔘 BOUTON UNIQUE RÉSERVATION
+        // 🔘 BOUTON GLOBAL RÉSERVATION
         const bookBtn = document.createElement("a");
         bookBtn.href = BOOKING_URL;
         bookBtn.target = "_blank";
         bookBtn.className = "kbBookBtn";
         bookBtn.textContent = UI[lang].book;
 
-        bot.appendChild(document.createElement("br"));
-        bot.appendChild(bookBtn);
-
-        bodyEl.appendChild(bot);
+        bodyEl.appendChild(bookBtn);
         bodyEl.scrollTop = bodyEl.scrollHeight;
 
       } catch (e) {
