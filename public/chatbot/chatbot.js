@@ -1,12 +1,14 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.9.7 — SUITES FIRST (CORS FIX)
- * BASE 1.6.9.6 STRICTE
+ * Version 1.6.9.7 — PATH SAFE (DOMAINE ACTUEL)
  ****************************************************/
 
 (function () {
 
-  console.log("Solo’IA’tico Chatbot v1.6.9.7 — CORS FIX");
+  const SCRIPT_URL = document.currentScript?.src || "";
+  const BASE_PATH = SCRIPT_URL.split("/chatbot/")[0] || "";
+
+  console.log("Solo’IA’tico Chatbot — BASE PATH =", BASE_PATH);
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -15,14 +17,22 @@
       const css = document.createElement("link");
       css.id = "soloia-css";
       css.rel = "stylesheet";
-      css.href = `/chatbot/chatbot.css`;
+      css.href = `${BASE_PATH}/chatbot/chatbot.css`;
       document.head.appendChild(css);
     }
 
     /* ===== HTML ===== */
     if (!document.getElementById("chatWindow")) {
-      const html = await fetch(`/chatbot/chatbot.html`).then(r => r.text());
-      document.body.insertAdjacentHTML("beforeend", html);
+      try {
+        const html = await fetch(`${BASE_PATH}/chatbot/chatbot.html`).then(r => {
+          if (!r.ok) throw "HTML 404";
+          return r.text();
+        });
+        document.body.insertAdjacentHTML("beforeend", html);
+      } catch (e) {
+        console.error("❌ Impossible de charger chatbot.html", e);
+        return;
+      }
     }
 
     /* ===== DOM ===== */
@@ -41,41 +51,30 @@
     let isOpen = false;
     chatWin.style.display = "none";
 
-    openBtn.addEventListener("click", e => {
+    openBtn.onclick = e => {
       e.preventDefault(); e.stopPropagation();
       isOpen = !isOpen;
       chatWin.style.display = isOpen ? "flex" : "none";
-    });
+    };
 
-    document.addEventListener("click", e => {
-      if (isOpen && !chatWin.contains(e.target) && !openBtn.contains(e.target)) {
-        chatWin.style.display = "none";
-        isOpen = false;
-      }
-    });
-
-    /* ===== NLP ===== */
+    /* ===== NLP SIMPLE ===== */
     const norm = t =>
       t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     function intent(t) {
-      if (/suite|chambre|room|hotel|logement|dorm|nuit|sejour|prix|price|reser/.test(t))
+      if (/suite|chambre|room|hotel|logement|nuit|prix|reser/.test(t))
         return "suites";
-      if (/tintorera|bateau|boat/.test(t)) return "tintorera";
-      if (/reiki|riki/.test(t)) return "reiki";
-      if (/piscine|pool|zwembad/.test(t)) return "piscine";
-      if (t.length < 4 || /bonjour|hello|hola|info/.test(t))
-        return "suites";
+      if (/bateau|boat|tintorera/.test(t)) return "tintorera";
+      if (/reiki/.test(t)) return "reiki";
+      if (/piscine|pool/.test(t)) return "piscine";
+      if (t.length < 4) return "suites";
       return null;
     }
 
-    /* ===== KB (RELATIVE — NO CORS) ===== */
-    async function loadKB(lang, file) {
-      let r = await fetch(`/kb/${lang}/${file}`);
-      if (!r.ok && lang !== "fr") {
-        r = await fetch(`/kb/fr/${file}`);
-      }
-      if (!r.ok) throw "KB introuvable";
+    /* ===== KB ===== */
+    async function loadKB(file) {
+      const r = await fetch(`${BASE_PATH}/kb/fr/${file}`);
+      if (!r.ok) throw "KB 404";
       return r.text();
     }
 
@@ -100,46 +99,31 @@
       const i = intent(t);
 
       try {
-
         if (i === "suites") {
-          const kb = parseKB(await loadKB("fr", "02_suites/suites.txt"));
+          const kb = parseKB(await loadKB("02_suites/suites.txt"));
           bodyEl.insertAdjacentHTML("beforeend",
             `<div class="msg botMsg">
-              ✨ <b>Avec plaisir</b><br><br>
+              ✨ <b>Bienvenue chez Solo’Atico</b><br><br>
               <b>${kb.short}</b>
             </div>`);
           bodyEl.scrollTop = bodyEl.scrollHeight;
           return;
         }
 
-        const file =
-          i === "tintorera" ? "03_services/tintorera-bateau.txt" :
-          i === "reiki"     ? "03_services/reiki.txt" :
-          "03_services/piscine-rooftop.txt";
-
-        const kb = parseKB(await loadKB("fr", file));
         bodyEl.insertAdjacentHTML("beforeend",
-          `<div class="msg botMsg"><b>${kb.short}</b></div>`);
+          `<div class="msg botMsg">Je peux vous aider avec nos suites.</div>`);
 
       } catch (e) {
         console.error(e);
         bodyEl.insertAdjacentHTML("beforeend",
-          `<div class="msg botMsg">
-            ⚠️ Contenu en cours de mise à jour.<br>
-            Souhaitez-vous découvrir nos <b>suites</b> ?
-          </div>`);
+          `<div class="msg botMsg">⚠️ Contenu temporairement indisponible.</div>`);
       }
-
-      bodyEl.scrollTop = bodyEl.scrollHeight;
     }
 
-    sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
+    sendBtn.onclick = sendMessage;
+    input.onkeydown = e => {
+      if (e.key === "Enter") sendMessage();
+    };
 
   });
 
