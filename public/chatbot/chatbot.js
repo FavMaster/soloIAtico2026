@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.6a — LANG + FUZZY ALIGNÉS
+ * Version 1.7.7 — FALLBACK HUMAIN + TINTORERA
  ****************************************************/
 
 (function () {
@@ -8,7 +8,7 @@
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
   const BOOKING_URL = "https://www.amenitiz.io/soloatico";
 
-  console.log("Solo’IA’tico Chatbot v1.7.6a — LANG FUZZY");
+  console.log("Solo’IA’tico Chatbot v1.7.7");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -54,14 +54,19 @@
     });
 
     /* ===== WHATSAPP ===== */
+    const WA = {
+      laurent: "https://wa.me/34621210642",
+      sophia:  "https://wa.me/34621128303"
+    };
+
     document.getElementById("waLaurent")?.addEventListener("click", e => {
       e.preventDefault(); e.stopPropagation();
-      window.open("https://wa.me/34621210642", "_blank");
+      window.open(WA.laurent, "_blank");
     });
 
     document.getElementById("waSophia")?.addEventListener("click", e => {
       e.preventDefault(); e.stopPropagation();
-      window.open("https://wa.me/34621128303", "_blank");
+      window.open(WA.sophia, "_blank");
     });
 
     /* ===== NORMALISATION ===== */
@@ -73,14 +78,6 @@
         .replace(/[^a-z\s]/g, "");
     }
 
-    /* ===== FUZZY KEYWORDS ===== */
-    const FUZZY = {
-      rooms: ["suite", "suites", "chambre", "room", "kamers"],
-      boat: ["bateau", "batea", "bato", "boat", "boot", "vaixell"],
-      reiki: ["reiki", "reiky", "riki"],
-      pool: ["piscine", "piscina", "pool", "swimming", "zwembad"]
-    };
-
     /* ===== LANG ===== */
     function pageLang() {
       const l = document.documentElement.lang?.slice(0,2);
@@ -90,23 +87,10 @@
     function detectLang(text) {
       const t = normalize(text);
 
-      // 🔑 aide par mots métiers très discriminants
-      if (FUZZY.pool.some(k => t.includes(k))) {
-        if (t.includes("zwembad")) return "nl";
-        if (t.includes("piscina")) return "es";
-        if (t.includes("swimming") || t.includes("pool")) return "en";
-      }
-
-      if (FUZZY.boat.some(k => t.includes(k))) {
-        if (t.includes("vaixell")) return "ca";
-        if (t.includes("boat") || t.includes("boot")) return "en";
-      }
-
-      // marqueurs linguistiques forts
       if (/\b(what|where|how|have you|do you|is there|are there)\b/.test(t)) return "en";
-      if (/\b(habitacion|reservar)\b/.test(t)) return "es";
-      if (/\b(habitacio|reservar)\b/.test(t)) return "ca";
-      if (/\b(kamer|reserveren)\b/.test(t)) return "nl";
+      if (/\b(habitacion|reservar|barco|piscina)\b/.test(t)) return "es";
+      if (/\b(habitacio|reservar|vaixell|piscina)\b/.test(t)) return "ca";
+      if (/\b(kamer|reserveren|boot|zwembad)\b/.test(t)) return "nl";
 
       return pageLang();
     }
@@ -115,13 +99,20 @@
       return lang === "ca" ? "cat" : lang;
     }
 
-    /* ===== INTENT ===== */
+    /* ===== FUZZY / INTENT ===== */
+    const FUZZY = {
+      rooms: ["suite", "suites", "chambre", "room", "kamers"],
+      boat: ["tintorera", "bateau", "batea", "bato", "boat", "boot", "vaixell"],
+      reiki: ["reiki", "reiky", "riki"],
+      pool: ["piscine", "piscina", "pool", "swimming", "zwembad"]
+    };
+
     function intent(text) {
       const t = normalize(text);
       for (const key in FUZZY) {
         if (FUZZY[key].some(k => t.includes(k))) return key;
       }
-      return "generic";
+      return "unknown";
     }
 
     /* ===== KB ===== */
@@ -144,11 +135,20 @@
 
     /* ===== STYLE ===== */
     const STYLE = {
-      fr: { pool: "🏊‍♀️ **Piscine rooftop**\nUn véritable atout de la maison :" },
-      en: { pool: "🏊‍♀️ **Rooftop pool**\nOne of the highlights of the house :" },
-      es: { pool: "🏊‍♀️ **Piscina rooftop**\nUn gran atractivo de la casa :" },
-      ca: { pool: "🏊‍♀️ **Piscina rooftop**\nUn gran atractiu de la casa :" },
-      nl: { pool: "🏊‍♀️ **Rooftop zwembad**\nEen van onze troeven :" }
+      fr: { boat:"⛵ **Tintorera**\nUne expérience exclusive :" },
+      en: { boat:"⛵ **Tintorera**\nAn exclusive experience :" },
+      es: { boat:"⛵ **Tintorera**\nUna experiencia exclusiva :" },
+      ca: { boat:"⛵ **Tintorera**\nUna experiència exclusiva :" },
+      nl: { boat:"⛵ **Tintorera**\nEen exclusieve ervaring :" }
+    };
+
+    /* ===== FALLBACK HUMAIN ===== */
+    const FALLBACK = {
+      fr: "✨ **Excellente question !**<br>Contactez **Sophia** ou **Laurent** via WhatsApp afin d’avoir votre réponse 🙂",
+      en: "✨ **Great question!**<br>Please contact **Sophia** or **Laurent** on WhatsApp to get your answer 🙂",
+      es: "✨ **¡Excelente pregunta!**<br>Contacta con **Sophia** o **Laurent** por WhatsApp para obtener tu respuesta 🙂",
+      ca: "✨ **Excel·lent pregunta!**<br>Contacta amb **Sophia** o **Laurent** via WhatsApp per obtenir la teva resposta 🙂",
+      nl: "✨ **Goede vraag!**<br>Neem contact op met **Sophia** of **Laurent** via WhatsApp voor je antwoord 🙂"
     };
 
     /* ===== UI ===== */
@@ -185,14 +185,20 @@
       const i = intent(raw);
 
       let files = [];
-      if (i === "pool") files = ["03_services/piscine-rooftop.txt"];
       if (i === "boat") files = ["03_services/tintorera-bateau.txt"];
+      if (i === "pool") files = ["03_services/piscine-rooftop.txt"];
       if (i === "reiki") files = ["03_services/reiki.txt"];
       if (i === "rooms") files = [
         "02_suites/suite-neus.txt",
         "02_suites/suite-bourlardes.txt",
         "02_suites/room-blue-patio.txt"
       ];
+
+      if (files.length === 0) {
+        bodyEl.insertAdjacentHTML("beforeend",
+          `<div class="msg botMsg">${FALLBACK[lang]}</div>`);
+        return;
+      }
 
       for (const f of files) {
         const kb = parseKB(await loadKB(lang, f));
