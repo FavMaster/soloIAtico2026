@@ -332,7 +332,15 @@ html, body {
               inset 0 1px 4px rgba(255,255,255,0.6);
   border: 1px solid rgba(255,255,255,0.5);
   transition: all 0.2s ease;
+
+  /* 👇 AJOUTS POUR ICÔNE */
+  font-size: 18px;          /* taille idéale pour l’avion */
+  line-height: 1;           /* évite le décalage vertical */
+  display: flex;            /* centrage parfait */
+  align-items: center;
+  justify-content: center;
 }
+
 
 #sendBtn:hover {
   transform: translateY(-2px);
