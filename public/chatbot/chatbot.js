@@ -1,14 +1,12 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.9.7 — SUITES PRIORITAIRES + NLP SOUPLE
- * BASE STRICTE 1.6.9.6 (AUCUNE RÉGRESSION)
+ * Version 1.6.9.7 — SUITES FIRST (CORS FIX)
+ * BASE 1.6.9.6 STRICTE
  ****************************************************/
 
 (function () {
 
-  const KB_BASE_URL = "https://solobotatico2026.vercel.app";
-
-  console.log("Solo’IA’tico Chatbot v1.6.9.7 — SUITES FIRST");
+  console.log("Solo’IA’tico Chatbot v1.6.9.7 — CORS FIX");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -17,13 +15,13 @@
       const css = document.createElement("link");
       css.id = "soloia-css";
       css.rel = "stylesheet";
-      css.href = `${KB_BASE_URL}/chatbot/chatbot.css`;
+      css.href = `/chatbot/chatbot.css`;
       document.head.appendChild(css);
     }
 
     /* ===== HTML ===== */
     if (!document.getElementById("chatWindow")) {
-      const html = await fetch(`${KB_BASE_URL}/chatbot/chatbot.html`).then(r => r.text());
+      const html = await fetch(`/chatbot/chatbot.html`).then(r => r.text());
       document.body.insertAdjacentHTML("beforeend", html);
     }
 
@@ -44,8 +42,7 @@
     chatWin.style.display = "none";
 
     openBtn.addEventListener("click", e => {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault(); e.stopPropagation();
       isOpen = !isOpen;
       chatWin.style.display = isOpen ? "flex" : "none";
     });
@@ -57,47 +54,26 @@
       }
     });
 
-    /* ===== LANG ===== */
-    function pageLang() {
-      return document.documentElement.lang?.slice(0,2) || "fr";
-    }
-
-    function detectLang(t) {
-      if (/is er|zwembad|boot/.test(t)) return "nl";
-      if (/what|how|room|suite|price/.test(t)) return "en";
-      if (/piscina|barco|habitacion|precio/.test(t)) return "es";
-      if (/piscina|vaixell|habitacio/.test(t)) return "ca";
-      return pageLang();
-    }
-
     /* ===== NLP ===== */
-    function norm(t) {
-      return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    }
+    const norm = t =>
+      t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     function intent(t) {
-
-      /* 🥇 SUITES — PRIORITÉ ABSOLUE */
-      if (/suite|chambre|room|habitacion|habitacio|hotel|logement|dorm|nuit|sejour|price|prix|reser/.test(t))
+      if (/suite|chambre|room|hotel|logement|dorm|nuit|sejour|prix|price|reser/.test(t))
         return "suites";
-
-      /* SERVICES EXISTANTS */
       if (/tintorera|bateau|boat/.test(t)) return "tintorera";
       if (/reiki|riki/.test(t)) return "reiki";
       if (/piscine|pool|zwembad/.test(t)) return "piscine";
-
-      /* FALLBACK HÔTELIER */
       if (t.length < 4 || /bonjour|hello|hola|info/.test(t))
         return "suites";
-
       return null;
     }
 
-    /* ===== KB ===== */
+    /* ===== KB (RELATIVE — NO CORS) ===== */
     async function loadKB(lang, file) {
-      let r = await fetch(`${KB_BASE_URL}/kb/${lang}/${file}`);
+      let r = await fetch(`/kb/${lang}/${file}`);
       if (!r.ok && lang !== "fr") {
-        r = await fetch(`${KB_BASE_URL}/kb/fr/${file}`);
+        r = await fetch(`/kb/fr/${file}`);
       }
       if (!r.ok) throw "KB introuvable";
       return r.text();
@@ -110,27 +86,6 @@
       };
     }
 
-    /* ===== REFORMULATION CONCIERGE ===== */
-    function concierge(text, lang) {
-      const intro = {
-        fr: "✨ Avec plaisir, voici ce que je peux vous proposer :",
-        en: "✨ With pleasure, here is what I can offer you:",
-        es: "✨ Con mucho gusto, esto es lo que le propongo:",
-        ca: "✨ Amb molt de gust, això és el que li proposo:",
-        nl: "✨ Met plezier stel ik het volgende voor:"
-      };
-      return `<div><i>${intro[lang] || intro.fr}</i><br><br><b>${text}</b></div>`;
-    }
-
-    /* ===== UI TEXT ===== */
-    const UI = {
-      fr: { more: "Voir la description complète", bookSuite: "🏨 Réserver la suite" },
-      en: { more: "View full description", bookSuite: "🏨 Book the suite" },
-      es: { more: "Ver la descripción completa", bookSuite: "🏨 Reservar la suite" },
-      ca: { more: "Veure la descripció completa", bookSuite: "🏨 Reservar la suite" },
-      nl: { more: "Volledige beschrijving bekijken", bookSuite: "🏨 Suite reserveren" }
-    };
-
     /* ===== SEND ===== */
     async function sendMessage() {
       if (!input.value.trim()) return;
@@ -142,74 +97,40 @@
         `<div class="msg userMsg">${raw}</div>`);
 
       const t = norm(raw);
-      const lang = detectLang(t);
       const i = intent(t);
 
       try {
 
-        /* 🥇 SUITES */
         if (i === "suites") {
-          const kb = parseKB(await loadKB(lang, "02_suites/suites.txt"));
-
-          const bot = document.createElement("div");
-          bot.className = "msg botMsg";
-          bot.innerHTML = concierge(kb.short, lang);
-
-          if (kb.long) {
-            const moreBtn = document.createElement("button");
-            moreBtn.className = "kbMoreBtn";
-            moreBtn.textContent = UI[lang].more;
-            moreBtn.onclick = () => {
-              moreBtn.remove();
-              const longDiv = document.createElement("div");
-              longDiv.className = "kbLong";
-              longDiv.innerHTML = `<br>${kb.long}`;
-              bot.appendChild(longDiv);
-            };
-            bot.appendChild(document.createElement("br"));
-            bot.appendChild(moreBtn);
-          }
-
-          bodyEl.appendChild(bot);
+          const kb = parseKB(await loadKB("fr", "02_suites/suites.txt"));
+          bodyEl.insertAdjacentHTML("beforeend",
+            `<div class="msg botMsg">
+              ✨ <b>Avec plaisir</b><br><br>
+              <b>${kb.short}</b>
+            </div>`);
           bodyEl.scrollTop = bodyEl.scrollHeight;
           return;
         }
 
-        /* SERVICES EXISTANTS (inchangés) */
         const file =
           i === "tintorera" ? "03_services/tintorera-bateau.txt" :
           i === "reiki"     ? "03_services/reiki.txt" :
           "03_services/piscine-rooftop.txt";
 
-        const kb = parseKB(await loadKB(lang, file));
-
-        const bot = document.createElement("div");
-        bot.className = "msg botMsg";
-        bot.innerHTML = concierge(kb.short, lang);
-
-        if (kb.long) {
-          const moreBtn = document.createElement("button");
-          moreBtn.className = "kbMoreBtn";
-          moreBtn.textContent = UI[lang].more;
-          moreBtn.onclick = () => {
-            moreBtn.remove();
-            const longDiv = document.createElement("div");
-            longDiv.className = "kbLong";
-            longDiv.innerHTML = `<br>${kb.long}`;
-            bot.appendChild(longDiv);
-          };
-          bot.appendChild(document.createElement("br"));
-          bot.appendChild(moreBtn);
-        }
-
-        bodyEl.appendChild(bot);
-        bodyEl.scrollTop = bodyEl.scrollHeight;
+        const kb = parseKB(await loadKB("fr", file));
+        bodyEl.insertAdjacentHTML("beforeend",
+          `<div class="msg botMsg"><b>${kb.short}</b></div>`);
 
       } catch (e) {
         console.error(e);
         bodyEl.insertAdjacentHTML("beforeend",
-          `<div class="msg botMsg">❌ Une erreur est survenue.</div>`);
+          `<div class="msg botMsg">
+            ⚠️ Contenu en cours de mise à jour.<br>
+            Souhaitez-vous découvrir nos <b>suites</b> ?
+          </div>`);
       }
+
+      bodyEl.scrollTop = bodyEl.scrollHeight;
     }
 
     sendBtn.addEventListener("click", sendMessage);
