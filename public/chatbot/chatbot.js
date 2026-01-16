@@ -1,13 +1,14 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.9.6 — STABLE + SHORT/LONG + BOOKING
+ * Version 1.7.1 — PRIORITÉ HÉBERGEMENTS
  ****************************************************/
 
 (function () {
 
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
+  const BOOKING_URL = "https://www.amenitiz.io/soloatico"; // ← URL Amenitiz
 
-  console.log("Solo’IA’tico Chatbot v1.6.9.6 — STABLE FULL");
+  console.log("Solo’IA’tico Chatbot v1.7.1 — HOTEL FIRST");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -33,10 +34,7 @@
     const input   = document.getElementById("userInput");
     const bodyEl  = document.getElementById("chatBody");
 
-    if (!chatWin || !openBtn || !sendBtn || !input || !bodyEl) {
-      console.error("❌ Chatbot DOM incomplet");
-      return;
-    }
+    if (!chatWin || !openBtn || !sendBtn || !input || !bodyEl) return;
 
     /* ===== OPEN / CLOSE ===== */
     let isOpen = false;
@@ -56,27 +54,16 @@
       }
     });
 
-    /* ===== WHATSAPP ===== */
-    document.getElementById("waLaurent")?.addEventListener("click", e => {
-      e.preventDefault(); e.stopPropagation();
-      window.open("https://wa.me/34621210642", "_blank");
-    });
-
-    document.getElementById("waSophia")?.addEventListener("click", e => {
-      e.preventDefault(); e.stopPropagation();
-      window.open("https://wa.me/34621128303", "_blank");
-    });
-
     /* ===== LANG ===== */
     function pageLang() {
       return document.documentElement.lang?.slice(0,2) || "fr";
     }
 
     function detectLang(t) {
-      if (/is er|zwembad|boot/.test(t)) return "nl";
-      if (/what|how|pool|boat/.test(t)) return "en";
-      if (/piscina|barco/.test(t)) return "es";
-      if (/piscina|vaixell/.test(t)) return "ca";
+      if (/is er|zwembad|kamer/.test(t)) return "nl";
+      if (/room|suite|book/.test(t)) return "en";
+      if (/habitacion|suite/.test(t)) return "es";
+      if (/habitacio|suite/.test(t)) return "ca";
       return pageLang();
     }
 
@@ -86,10 +73,8 @@
     }
 
     function intent(t) {
-      if (/tintorera|bateau|boat/.test(t)) return "tintorera";
-      if (/reiki|riki/.test(t)) return "reiki";
-      if (/piscine|pool|zwembad/.test(t)) return "piscine";
-      return null;
+      if (/suite|chambre|room|habitacion|habitacio/.test(t)) return "rooms";
+      return "rooms"; // 🔥 PRIORITÉ ABSOLUE
     }
 
     /* ===== KB ===== */
@@ -111,11 +96,11 @@
 
     /* ===== UI TEXT ===== */
     const UI = {
-      fr: { more: "Voir la description complète", bookBoat: "⛵ Réserver la sortie Tintorera", bookReiki: "🧘‍♀️ Réserver une séance Reiki", bookSuite: "🏨 Réserver" },
-      en: { more: "View full description", bookBoat: "⛵ Book the Tintorera boat trip", bookReiki: "🧘‍♀️ Book a Reiki session", bookSuite: "🏨 Book now" },
-      es: { more: "Ver la descripción completa", bookBoat: "⛵ Reservar salida Tintorera", bookReiki: "🧘‍♀️ Reservar sesión de Reiki", bookSuite: "🏨 Reservar" },
-      ca: { more: "Veure la descripció completa", bookBoat: "⛵ Reservar sortida Tintorera", bookReiki: "🧘‍♀️ Reservar sessió de Reiki", bookSuite: "🏨 Reservar" },
-      nl: { more: "Volledige beschrijving bekijken", bookBoat: "⛵ Tintorera boottocht boeken", bookReiki: "🧘‍♀️ Reiki-sessie boeken", bookSuite: "🏨 Reserveren" }
+      fr: { more: "Voir la description complète", book: "🏨 Réserver" },
+      en: { more: "View full description", book: "🏨 Book now" },
+      es: { more: "Ver la descripción completa", book: "🏨 Reservar" },
+      ca: { more: "Veure la descripció completa", book: "🏨 Reservar" },
+      nl: { more: "Volledige beschrijving bekijken", book: "🏨 Reserveren" }
     };
 
     /* ===== SEND ===== */
@@ -130,42 +115,28 @@
 
       const t = norm(raw);
       const lang = detectLang(t);
-      const i = intent(t);
 
       try {
-        if (!i) {
-          bodyEl.insertAdjacentHTML("beforeend",
-            `<div class="msg botMsg">🤔 Pouvez-vous préciser votre demande ?</div>`);
-          return;
-        }
-
-        const file =
-          i === "tintorera" ? "03_services/tintorera-bateau.txt" :
-          i === "reiki"     ? "03_services/reiki.txt" :
-          "03_services/piscine-rooftop.txt";
+        // 👉 FICHIER KB HÉBERGEMENTS
+        const file = "01_rooms/suites-et-chambre.txt";
 
         const kb = parseKB(await loadKB(lang, file));
 
         const bot = document.createElement("div");
         bot.className = "msg botMsg";
 
-        /* SHORT */
-        const shortDiv = document.createElement("div");
-        shortDiv.innerHTML = `<b>${kb.short}</b>`;
-        bot.appendChild(shortDiv);
+        bot.innerHTML = `<b>${kb.short}</b>`;
 
-        /* LONG (hidden) */
         if (kb.long) {
           const moreBtn = document.createElement("button");
           moreBtn.className = "kbMoreBtn";
           moreBtn.textContent = UI[lang].more;
 
-          // ✅ FIX : empêcher la fermeture du chatbot
           moreBtn.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
-
             moreBtn.remove();
+
             const longDiv = document.createElement("div");
             longDiv.className = "kbLong";
             longDiv.innerHTML = `<br>${kb.long}`;
@@ -177,23 +148,15 @@
           bot.appendChild(moreBtn);
         }
 
-        /* BOOKING */
-        let bookingUrl = null;
-        if (i === "tintorera") bookingUrl = "https://koalendar.com/e/tintorera";
-        if (i === "reiki") bookingUrl = "https://koalendar.com/e/soloatico-reiki";
+        // 🔘 BOUTON UNIQUE RÉSERVATION
+        const bookBtn = document.createElement("a");
+        bookBtn.href = BOOKING_URL;
+        bookBtn.target = "_blank";
+        bookBtn.className = "kbBookBtn";
+        bookBtn.textContent = UI[lang].book;
 
-        if (bookingUrl) {
-          const bookBtn = document.createElement("a");
-          bookBtn.href = bookingUrl;
-          bookBtn.target = "_blank";
-          bookBtn.className = "kbBookBtn";
-          bookBtn.textContent = i === "tintorera"
-            ? UI[lang].bookBoat
-            : UI[lang].bookReiki;
-
-          bot.appendChild(document.createElement("br"));
-          bot.appendChild(bookBtn);
-        }
+        bot.appendChild(document.createElement("br"));
+        bot.appendChild(bookBtn);
 
         bodyEl.appendChild(bot);
         bodyEl.scrollTop = bodyEl.scrollHeight;
