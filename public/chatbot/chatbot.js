@@ -1,12 +1,13 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.9.7 — PATH SAFE (DOMAINE ACTUEL)
+ * Version 1.6.9.8 — CORS SAFE / SUITES FIRST
+ * BASE 1.6.9.6 RESPECTÉE
  ****************************************************/
 
 (function () {
 
-  const SCRIPT_URL = document.currentScript?.src || "";
-  const BASE_PATH = SCRIPT_URL.split("/chatbot/")[0] || "";
+  // 🔐 TOUJOURS le domaine de la page
+  const BASE_PATH = window.location.origin;
 
   console.log("Solo’IA’tico Chatbot — BASE PATH =", BASE_PATH);
 
@@ -25,12 +26,12 @@
     if (!document.getElementById("chatWindow")) {
       try {
         const html = await fetch(`${BASE_PATH}/chatbot/chatbot.html`).then(r => {
-          if (!r.ok) throw "HTML 404";
+          if (!r.ok) throw "HTML introuvable";
           return r.text();
         });
         document.body.insertAdjacentHTML("beforeend", html);
       } catch (e) {
-        console.error("❌ Impossible de charger chatbot.html", e);
+        console.error("❌ chatbot.html introuvable sur le site", e);
         return;
       }
     }
@@ -51,30 +52,36 @@
     let isOpen = false;
     chatWin.style.display = "none";
 
-    openBtn.onclick = e => {
+    openBtn.addEventListener("click", e => {
       e.preventDefault(); e.stopPropagation();
       isOpen = !isOpen;
       chatWin.style.display = isOpen ? "flex" : "none";
-    };
+    });
 
-    /* ===== NLP SIMPLE ===== */
+    /* ===== NLP ===== */
     const norm = t =>
       t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     function intent(t) {
-      if (/suite|chambre|room|hotel|logement|nuit|prix|reser/.test(t))
+      // 🥇 Suites = priorité absolue
+      if (/suite|chambre|room|hotel|logement|nuit|prix|price|reser/.test(t))
         return "suites";
+
       if (/bateau|boat|tintorera/.test(t)) return "tintorera";
       if (/reiki/.test(t)) return "reiki";
       if (/piscine|pool/.test(t)) return "piscine";
-      if (t.length < 4) return "suites";
+
+      // fallback hôtelier
+      if (t.length < 4 || /bonjour|hello|hola|info/.test(t))
+        return "suites";
+
       return null;
     }
 
-    /* ===== KB ===== */
+    /* ===== KB (SAME ORIGIN — SAFE) ===== */
     async function loadKB(file) {
       const r = await fetch(`${BASE_PATH}/kb/fr/${file}`);
-      if (!r.ok) throw "KB 404";
+      if (!r.ok) throw "KB introuvable";
       return r.text();
     }
 
@@ -99,11 +106,12 @@
       const i = intent(t);
 
       try {
+
         if (i === "suites") {
           const kb = parseKB(await loadKB("02_suites/suites.txt"));
           bodyEl.insertAdjacentHTML("beforeend",
             `<div class="msg botMsg">
-              ✨ <b>Bienvenue chez Solo’Atico</b><br><br>
+              ✨ <b>Avec plaisir</b><br><br>
               <b>${kb.short}</b>
             </div>`);
           bodyEl.scrollTop = bodyEl.scrollHeight;
@@ -111,19 +119,29 @@
         }
 
         bodyEl.insertAdjacentHTML("beforeend",
-          `<div class="msg botMsg">Je peux vous aider avec nos suites.</div>`);
+          `<div class="msg botMsg">
+            Je peux vous aider à découvrir nos <b>suites</b>.
+          </div>`);
 
       } catch (e) {
         console.error(e);
         bodyEl.insertAdjacentHTML("beforeend",
-          `<div class="msg botMsg">⚠️ Contenu temporairement indisponible.</div>`);
+          `<div class="msg botMsg">
+            ⚠️ Les informations sont temporairement indisponibles.<br>
+            Souhaitez-vous découvrir nos <b>suites</b> ?
+          </div>`);
       }
+
+      bodyEl.scrollTop = bodyEl.scrollHeight;
     }
 
-    sendBtn.onclick = sendMessage;
-    input.onkeydown = e => {
-      if (e.key === "Enter") sendMessage();
-    };
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
 
   });
 
