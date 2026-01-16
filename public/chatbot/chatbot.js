@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.4 — MULTI-SUJETS / 5 LANGUES / UX AMÉLIORÉE
+ * Version 1.7.4b — FIX KB CATALAN (cat)
  ****************************************************/
 
 (function () {
@@ -8,7 +8,7 @@
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
   const BOOKING_URL = "https://www.amenitiz.io/soloatico";
 
-  console.log("Solo’IA’tico Chatbot v1.7.4");
+  console.log("Solo’IA’tico Chatbot v1.7.4b — LANG ca / KB cat");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -63,9 +63,14 @@
       const t = text.toLowerCase();
       if (/what|room|suite|boat|pool|reiki/.test(t)) return "en";
       if (/habitacion|barco|piscina|reiki/.test(t)) return "es";
-      if (/habitacio|vaixell|piscina|reiki/.test(t)) return "ca";
+      if (/habitacio|vaixell|piscina|reiki/.test(t)) return "ca"; // catalan
       if (/kamer|boot|zwembad|reiki/.test(t)) return "nl";
       return pageLang();
+    }
+
+    // 🔑 mapping langue → répertoire KB
+    function kbLang(lang) {
+      return lang === "ca" ? "cat" : lang;
     }
 
     /* ===== INTENT ===== */
@@ -73,14 +78,15 @@
       if (/suite|room|chambre|hotel/.test(t)) return "rooms";
       if (/reiki/.test(t)) return "reiki";
       if (/bateau|boat|boot|vaixell/.test(t)) return "boat";
-      if (/piscine|pool|zwembad/.test(t)) return "pool";
+      if (/piscine|pool|zwembad|piscina/.test(t)) return "pool";
       return "generic";
     }
 
     /* ===== KB ===== */
     async function loadKB(lang, path) {
-      let r = await fetch(`${KB_BASE_URL}/kb/${lang}/${path}`);
-      if (!r.ok && lang !== "fr") {
+      const dir = kbLang(lang);
+      let r = await fetch(`${KB_BASE_URL}/kb/${dir}/${path}`);
+      if (!r.ok && dir !== "fr") {
         r = await fetch(`${KB_BASE_URL}/kb/fr/${path}`);
       }
       if (!r.ok) throw "KB introuvable";
