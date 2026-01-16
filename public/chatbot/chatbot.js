@@ -1,28 +1,28 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.6.9.6 — SAFE FIX KB CLICK
+ * Version 1.6.9.6 — FINAL SAFE DOM INIT
  ****************************************************/
 
 (function () {
 
-  console.log("Solo’IA’tico Chatbot v1.6.9.6 — SAFE KB CLICK FIX");
+  console.log("Solo’IA’tico Chatbot v1.6.9.6 — WAIT DOM");
 
-  document.addEventListener("DOMContentLoaded", () => {
+  function initChatbot() {
 
     const openBtn    = document.getElementById("openChatBtn");
     const chatWindow = document.getElementById("chatWindow");
-    const sendBtn    = document.getElementById("sendBtn");
-    const input      = document.getElementById("userInput");
-    const chatBody   = document.getElementById("chatBody");
-    const typing     = document.getElementById("typing");
 
     if (!openBtn || !chatWindow) {
-      console.error("Chatbot DOM not found — abort");
-      return;
+      return false;
     }
 
+    const sendBtn  = document.getElementById("sendBtn");
+    const input    = document.getElementById("userInput");
+    const chatBody = document.getElementById("chatBody");
+    const typing   = document.getElementById("typing");
+
     /* ================================
-       OPEN / CLOSE (EXISTANT)
+       OPEN / CLOSE
        ================================ */
     openBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -68,7 +68,7 @@
       chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    async function sendMessage() {
+    function sendMessage() {
       const text = input.value.trim();
       if (!text) return;
 
@@ -90,6 +90,22 @@
       }
     });
 
+    console.log("Solo’IA’tico Chatbot initialisé ✅");
+    return true;
+  }
+
+  /* ================================
+     Observer DOM (clé de la stabilité)
+     ================================ */
+  const observer = new MutationObserver(() => {
+    if (initChatbot()) {
+      observer.disconnect();
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
   });
 
 })();
