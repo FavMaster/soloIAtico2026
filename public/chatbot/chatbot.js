@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.4c — FIX DÉTECTION LANGUE (suite)
+ * Version 1.7.5 — FIX WHATSAPP SAFE
  ****************************************************/
 
 (function () {
@@ -8,7 +8,7 @@
   const KB_BASE_URL = "https://solobotatico2026.vercel.app";
   const BOOKING_URL = "https://www.amenitiz.io/soloatico";
 
-  console.log("Solo’IA’tico Chatbot v1.7.4c — LANG FINAL");
+  console.log("Solo’IA’tico Chatbot v1.7.5 — WHATSAPP OK");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -41,7 +41,8 @@
     chatWin.style.display = "none";
 
     openBtn.addEventListener("click", e => {
-      e.preventDefault(); e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
       isOpen = !isOpen;
       chatWin.style.display = isOpen ? "flex" : "none";
     });
@@ -53,6 +54,22 @@
       }
     });
 
+    /* ===== WHATSAPP (FIX SAFE) ===== */
+    const waLaurent = document.getElementById("waLaurent");
+    const waSophia  = document.getElementById("waSophia");
+
+    waLaurent?.addEventListener("click", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.open("https://wa.me/34621210642", "_blank");
+    });
+
+    waSophia?.addEventListener("click", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.open("https://wa.me/34621128303", "_blank");
+    });
+
     /* ===== LANG ===== */
     function pageLang() {
       const l = document.documentElement.lang?.slice(0,2);
@@ -61,24 +78,13 @@
 
     function detectLang(text) {
       const t = text.toLowerCase();
-
-      // 🇬🇧 Anglais — marqueurs forts uniquement
       if (/\b(what|how|book|available|price)\b/.test(t)) return "en";
-
-      // 🇪🇸 Espagnol
       if (/\b(habitacion|reservar|piscina|barco)\b/.test(t)) return "es";
-
-      // 🇨🇦 Catalan
       if (/\b(habitacio|reservar|piscina|vaixell)\b/.test(t)) return "ca";
-
-      // 🇳🇱 Néerlandais
       if (/\b(kamer|reserveren|zwembad|boot)\b/.test(t)) return "nl";
-
-      // 🇫🇷 Français par défaut
       return pageLang();
     }
 
-    // 🔑 mapping langue → dossier KB
     function kbLang(lang) {
       return lang === "ca" ? "cat" : lang;
     }
@@ -119,7 +125,6 @@
       nl:{ more:"Volledige beschrijving bekijken", book:"🏨 Reserveren" }
     };
 
-    /* ===== RENDER LONG ===== */
     function renderLong(bot, text) {
       const wrap = document.createElement("div");
       wrap.className = "kbLong";
@@ -165,7 +170,8 @@
           moreBtn.className = "kbMoreBtn";
           moreBtn.textContent = UI[lang].more;
           moreBtn.onclick = e => {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             moreBtn.remove();
             renderLong(bot, kb.long);
           };
