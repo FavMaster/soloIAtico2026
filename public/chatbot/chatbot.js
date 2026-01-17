@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.17-B — SUITES PAR NOM PROPRE
+ * Version 1.7.18-R — ROOMS ENRICHED (SAFE)
  ****************************************************/
 
 (function () {
@@ -20,7 +20,7 @@
     reiki: "https://koalendar.com/e/soloatico-reiki"
   };
 
-  console.log("Solo’IA’tico Chatbot v1.7.17-B — Suites par nom");
+  console.log("Solo’IA’tico Chatbot v1.7.18-R — Rooms enriched");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -150,6 +150,23 @@
       nl: "✨ **Goede vraag!**<br>Neem contact op met **Sophia** of **Laurent** via WhatsApp 🙂"
     };
 
+    /* ===== ROOM ATTRIBUTES (LOCAL ONLY) ===== */
+    const ROOM_META = {
+      "02_suites/suite-neus.txt":       { vue_mer:true,  lumineuse:true,  intimiste:false, vue_patio:false },
+      "02_suites/suite-bourlardes.txt": { vue_mer:true,  lumineuse:false, intimiste:true,  vue_patio:false },
+      "02_suites/room-blue-patio.txt":  { vue_mer:false, lumineuse:false, intimiste:false, vue_patio:true  }
+    };
+
+    function extractRoomCriteria(text) {
+      const t = normalize(text);
+      return {
+        vue_mer: /(vue mer|sea view|vista mar)/.test(t),
+        vue_patio: /(patio)/.test(t),
+        intimiste: /(intimiste|cosy|cocon)/.test(t),
+        lumineuse: /(lumineuse|bright|luminoso)/.test(t)
+      };
+    }
+
     /* ===== KB ===== */
     async function loadKB(lang, path) {
       const dir = kbLang(lang);
@@ -221,11 +238,23 @@
         }
       }
 
-      if (i === "rooms") files = [
-        "02_suites/suite-neus.txt",
-        "02_suites/suite-bourlardes.txt",
-        "02_suites/room-blue-patio.txt"
-      ];
+      if (i === "rooms") {
+        files = [
+          "02_suites/suite-neus.txt",
+          "02_suites/suite-bourlardes.txt",
+          "02_suites/room-blue-patio.txt"
+        ];
+
+        const criteria = extractRoomCriteria(raw);
+        const hasCriteria = Object.values(criteria).some(v => v);
+
+        if (hasCriteria) {
+          files = files.filter(f =>
+            Object.keys(criteria).every(k => !criteria[k] || ROOM_META[f][k])
+          );
+        }
+      }
+
       if (i === "boat")  files = ["03_services/tintorera-bateau.txt"];
       if (i === "reiki") files = ["03_services/reiki.txt"];
       if (i === "pool")  files = ["03_services/piscine-rooftop.txt"];
