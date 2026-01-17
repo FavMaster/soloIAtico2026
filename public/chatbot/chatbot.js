@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.21 — PRESENTATION GENERALE (SAFE)
+ * Version 1.7.22 — PRESENTATION INTELLIGENCE ENHANCED
  ****************************************************/
 
 (function () {
@@ -36,7 +36,7 @@
     nl: "✨ **L’Escala biedt tal van ervaringen om te ontdekken:**"
   };
 
-  console.log("Solo’IA’tico Chatbot v1.7.21 — Presentation added");
+  console.log("Solo’IA’tico Chatbot v1.7.22 — Presentation intelligence");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -146,7 +146,10 @@
         "about","place","our hotel",
         "presentacion","establecimiento",
         "presentacio","establiment",
-        "accommodatie","hotel concept"
+        "accommodatie","hotel concept",
+        "soloatico","solo atico","solo atico guest suite",
+        "votre hotel","votre etablissement",
+        "laurent","sophie","plage"
       ],
       rooms: ["suite","suites","chambre","room","kamers"],
       boat: ["tintorera","bateau","batea","bato","boat","boot","vaixell"],
@@ -163,6 +166,7 @@
 
     function intent(text) {
       const t = normalize(text);
+
       if (GREETINGS.some(g => t.includes(g))) return "greeting";
 
       for (const name in SUITES_BY_NAME) {
@@ -172,6 +176,7 @@
       for (const key in FUZZY) {
         if (FUZZY[key].some(k => t.includes(k))) return key;
       }
+
       return "unknown";
     }
 
@@ -305,12 +310,14 @@
 
         if (wantsToBook(raw) && BOOKING_INTRO[lang]) {
           bot.insertAdjacentHTML("beforeend",
-            `<div class="kbLongParagraph">${BOOKING_INTRO[lang]}</div>`);
+            `<div class="kbLongParagraph">${BOOKING_INTRO[lang]}</div>`
+          );
         }
 
         if (i === "activities" && ACTIVITIES_INTRO[lang]) {
           bot.insertAdjacentHTML("beforeend",
-            `<div class="kbLongParagraph">${ACTIVITIES_INTRO[lang]}</div>`);
+            `<div class="kbLongParagraph">${ACTIVITIES_INTRO[lang]}</div>`
+          );
         }
 
         bot.insertAdjacentHTML("beforeend", `<div>${kb.short}</div>`);
