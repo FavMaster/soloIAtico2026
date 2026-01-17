@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.19-P — BOOKING LOGIC + FUZZY PATCH SAFE
+ * Version 1.7.19-G — GREETING VOCABULARY SAFE
  ****************************************************/
 
 (function () {
@@ -28,7 +28,7 @@
     nl: "✅ **Ja, natuurlijk 🙂 Je kunt nu reserveren.**"
   };
 
-  console.log("Solo’IA’tico Chatbot v1.7.19-P — Safe fuzzy patch");
+  console.log("Solo’IA’tico Chatbot v1.7.19-G — Greeting vocabulary");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -92,7 +92,7 @@
         .replace(/[^a-z\s]/g, "");
     }
 
-    /* ===== SOFT FUZZY PATCH (NEW) ===== */
+    /* ===== SOFT FUZZY PATCH ===== */
     function softCorrect(text) {
       let t = normalize(text);
 
@@ -118,7 +118,6 @@
       return t;
     }
 
-    /* ===== BOOKING INTENT ===== */
     function wantsToBook(text) {
       const t = softCorrect(text);
       return /(reserv|book|boeke|pued|puis[-\s]?je|kan ik|can i)/.test(t);
@@ -144,7 +143,22 @@
     }
 
     /* ===== INTENTS ===== */
-    const GREETINGS = ["bonjour","bonsoir","salut","hello","hi","hola","bon dia","good morning"];
+    const GREETINGS = [
+      // FR
+      "bonjour","bonsoir","salut","coucou","bjr",
+
+      // EN
+      "hello","hi","hey","good morning","good evening",
+
+      // ES
+      "hola","buenos dias","buenas",
+
+      // CA
+      "bon dia","bones",
+
+      // NL
+      "hallo","goeiedag","goedemorgen"
+    ];
 
     const SUITES_BY_NAME = {
       neus: "02_suites/suite-neus.txt",
