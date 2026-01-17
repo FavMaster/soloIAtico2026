@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.14 — BOOKING ICON 🛎️
+ * Version 1.7.15 — ACTIVITÉS (TEST DOUX)
  ****************************************************/
 
 (function () {
@@ -20,7 +20,7 @@
     reiki: "https://koalendar.com/e/soloatico-reiki"
   };
 
-  console.log("Solo’IA’tico Chatbot v1.7.14 — BOOKING ICON");
+  console.log("Solo’IA’tico Chatbot v1.7.15 — ACTIVITIES TEST");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -92,10 +92,10 @@
 
     function detectLang(text) {
       const t = normalize(text);
-      if (/\b(hello|hi|what|where|how|have you|do you|is there|are there)\b/.test(t)) return "en";
-      if (/\b(hola|habitacion|reservar|barco|piscina)\b/.test(t)) return "es";
-      if (/\b(bon dia|habitacio|reservar|vaixell|piscina)\b/.test(t)) return "ca";
-      if (/\b(hallo|kamer|reserveren|boot|zwembad)\b/.test(t)) return "nl";
+      if (/\b(hello|hi|what|where|things to do|activities|nearby)\b/.test(t)) return "en";
+      if (/\b(que hacer|actividades|cerca)\b/.test(t)) return "es";
+      if (/\b(que fer|activitats|voltants)\b/.test(t)) return "ca";
+      if (/\b(wat te doen|activiteiten|in de buurt)\b/.test(t)) return "nl";
       return pageLang();
     }
 
@@ -109,7 +109,14 @@
       rooms: ["suite","suites","chambre","room","kamers"],
       boat: ["tintorera","bateau","batea","bato","boat","boot","vaixell"],
       reiki: ["reiki","reiky","riki"],
-      pool: ["piscine","piscina","pool","swimming","zwembad"]
+      pool: ["piscine","piscina","pool","swimming","zwembad"],
+      activities: [
+        "que faire","quoi faire","activites","activites a",
+        "things to do","activities","what to do","nearby",
+        "que hacer","actividades","cerca",
+        "que fer","activitats","voltants",
+        "wat te doen","activiteiten","in de buurt"
+      ]
     };
 
     function intent(text) {
@@ -138,32 +145,6 @@
         long:  (txt.match(/LONG:\s*([\s\S]*)/i) || ["",""])[1].trim()
       };
     }
-
-    /* ===== GREETING & FALLBACK ===== */
-    const GREETING_MSG = {
-      fr: "👋 **Bonjour !**<br>Que puis-je faire pour vous aujourd’hui ?",
-      en: "👋 **Hello!**<br>How can I help you today?",
-      es: "👋 **¡Hola!**<br>¿En qué puedo ayudarte hoy?",
-      ca: "👋 **Hola!**<br>En què et puc ajudar avui?",
-      nl: "👋 **Hallo!**<br>Hoe kan ik je vandaag helpen?"
-    };
-
-    const FALLBACK = {
-      fr: "✨ **Excellente question !**<br>Contactez **Sophia** ou **Laurent** via WhatsApp afin d’avoir votre réponse 🙂",
-      en: "✨ **Great question!**<br>Please contact **Sophia** or **Laurent** on WhatsApp to get your answer 🙂",
-      es: "✨ **¡Excelente pregunta!**<br>Contacta con **Sophia** o **Laurent** por WhatsApp para obtener tu respuesta 🙂",
-      ca: "✨ **Excel·lent pregunta!**<br>Contacta amb **Sophia** o **Laurent** via WhatsApp per obtenir la teva resposta 🙂",
-      nl: "✨ **Goede vraag!**<br>Neem contact op met **Sophia** of **Laurent** via WhatsApp voor je antwoord 🙂"
-    };
-
-    /* ===== STYLE ===== */
-    const STYLE = {
-      fr:{ rooms:"🏨 **Nos hébergements**" },
-      en:{ rooms:"🏨 **Our accommodations**" },
-      es:{ rooms:"🏨 **Nuestros alojamientos**" },
-      ca:{ rooms:"🏨 **Els nostres allotjaments**" },
-      nl:{ rooms:"🏨 **Onze accommodaties**" }
-    };
 
     /* ===== KB LONG PRO ===== */
     function renderLongPro(bot, text) {
@@ -205,7 +186,7 @@
 
       if (i === "greeting") {
         bodyEl.insertAdjacentHTML("beforeend",
-          `<div class="msg botMsg">${GREETING_MSG[lang]}</div>`);
+          `<div class="msg botMsg">👋</div>`);
         return;
       }
 
@@ -218,22 +199,16 @@
       if (i === "boat")  files = ["03_services/tintorera-bateau.txt"];
       if (i === "reiki") files = ["03_services/reiki.txt"];
       if (i === "pool")  files = ["03_services/piscine-rooftop.txt"];
+      if (i === "activities") files = ["04_que-faire/que-faire-escala.txt"];
 
-      if (files.length === 0) {
-        bodyEl.insertAdjacentHTML("beforeend",
-          `<div class="msg botMsg">${FALLBACK[lang]}</div>`);
-        return;
-      }
+      if (files.length === 0) return;
 
       for (const f of files) {
         const kb = parseKB(await loadKB(lang, f));
         const bot = document.createElement("div");
         bot.className = "msg botMsg";
 
-        const title = i === "rooms" ? STYLE[lang].rooms : "";
-        bot.innerHTML = title
-          ? `<div class="kbLongTitle">${title}</div><div>${kb.short}</div>`
-          : `<div>${kb.short}</div>`;
+        bot.innerHTML = `<div>${kb.short}</div>`;
 
         if (kb.long) {
           const moreBtn = document.createElement("button");
