@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.11 — SERVICES RÉTABLIS
+ * Version 1.7.12 — BOOKING SERVICES OK
  ****************************************************/
 
 (function () {
@@ -15,7 +15,12 @@
     en: "https://soloatico.amenitiz.io/en/booking/room#DatesGuests-BE"
   };
 
-  console.log("Solo’IA’tico Chatbot v1.7.11 — SERVICES OK");
+  const SERVICE_BOOKING = {
+    boat: "https://koalendar.com/e/tintorera",
+    reiki: "https://koalendar.com/e/soloatico-reiki"
+  };
+
+  console.log("Solo’IA’tico Chatbot v1.7.12 — SERVICES BOOKING");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -226,7 +231,9 @@
         bot.className = "msg botMsg";
 
         const title = i === "rooms" ? STYLE[lang].rooms : "";
-        bot.innerHTML = title ? `<div class="kbLongTitle">${title}</div><div>${kb.short}</div>` : `<div>${kb.short}</div>`;
+        bot.innerHTML = title
+          ? `<div class="kbLongTitle">${title}</div><div>${kb.short}</div>`
+          : `<div>${kb.short}</div>`;
 
         if (kb.long) {
           const moreBtn = document.createElement("button");
@@ -240,9 +247,12 @@
           bot.appendChild(moreBtn);
         }
 
-        if (i === "rooms") {
+        if (i === "rooms" || i === "boat" || i === "reiki") {
           const bookBtn = document.createElement("a");
-          bookBtn.href = BOOKING_URLS[lang] || BOOKING_URLS.fr;
+          bookBtn.href =
+            i === "rooms"
+              ? (BOOKING_URLS[lang] || BOOKING_URLS.fr)
+              : SERVICE_BOOKING[i];
           bookBtn.target = "_blank";
           bookBtn.className = "kbBookBtn";
           bookBtn.textContent = "🏨 Réserver";
