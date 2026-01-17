@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.12 — BOOKING SERVICES OK
+ * Version 1.7.13 — PLUS UNIVERSEL
  ****************************************************/
 
 (function () {
@@ -20,7 +20,7 @@
     reiki: "https://koalendar.com/e/soloatico-reiki"
   };
 
-  console.log("Solo’IA’tico Chatbot v1.7.12 — SERVICES BOOKING");
+  console.log("Solo’IA’tico Chatbot v1.7.13 — PLUS ICON");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -238,7 +238,7 @@
         if (kb.long) {
           const moreBtn = document.createElement("button");
           moreBtn.className = "kbMoreBtn";
-          moreBtn.textContent = "Voir plus";
+          moreBtn.textContent = "➕";
           moreBtn.onclick = e => {
             e.preventDefault(); e.stopPropagation();
             moreBtn.remove();
