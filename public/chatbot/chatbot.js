@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.19 — BOOKING LOGIC SAFE (NO REGRESSION)
+ * Version 1.7.19-P — BOOKING LOGIC + FUZZY PATCH SAFE
  ****************************************************/
 
 (function () {
@@ -28,7 +28,7 @@
     nl: "✅ **Ja, natuurlijk 🙂 Je kunt nu reserveren.**"
   };
 
-  console.log("Solo’IA’tico Chatbot v1.7.19 — Booking logic safe");
+  console.log("Solo’IA’tico Chatbot v1.7.19-P — Safe fuzzy patch");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -92,9 +92,35 @@
         .replace(/[^a-z\s]/g, "");
     }
 
+    /* ===== SOFT FUZZY PATCH (NEW) ===== */
+    function softCorrect(text) {
+      let t = normalize(text);
+
+      const MAP = {
+        "uites": "suites",
+        "uite": "suite",
+        "suit": "suite",
+        "neuse": "neus",
+        "neuss": "neus",
+        "reky": "reiki",
+        "riki": "reiki",
+        "piscin": "piscine",
+        "pisine": "piscine",
+        "bat eau": "bateau",
+        "bato": "bateau",
+        "vaissel": "vaixell"
+      };
+
+      for (const k in MAP) {
+        t = t.replace(new RegExp(`\\b${k}\\b`, "g"), MAP[k]);
+      }
+
+      return t;
+    }
+
     /* ===== BOOKING INTENT ===== */
     function wantsToBook(text) {
-      const t = normalize(text);
+      const t = softCorrect(text);
       return /(reserv|book|boeke|pued|puis[-\s]?je|kan ik|can i)/.test(t);
     }
 
@@ -142,7 +168,7 @@
     };
 
     function intent(text) {
-      const t = normalize(text);
+      const t = softCorrect(text);
       if (GREETINGS.some(g => t.includes(g))) return "greeting";
 
       for (const name in SUITES_BY_NAME) {
@@ -172,7 +198,7 @@
     };
 
     function extractRoomCriteria(text) {
-      const t = normalize(text);
+      const t = softCorrect(text);
       return {
         vue_mer: /(vue mer|sea view|vista mar)/.test(t),
         vue_patio: /(patio)/.test(t),
@@ -233,8 +259,9 @@
       bodyEl.insertAdjacentHTML("beforeend",
         `<div class="msg userMsg">${raw}</div>`);
 
-      const lang = detectLang(raw);
-      const i = intent(raw);
+      const corrected = softCorrect(raw);
+      const lang = detectLang(corrected);
+      const i = intent(corrected);
 
       if (i === "greeting") {
         bodyEl.insertAdjacentHTML("beforeend",
@@ -245,9 +272,8 @@
       let files = [];
 
       if (i === "suite_named") {
-        const t = normalize(raw);
         for (const key in SUITES_BY_NAME) {
-          if (t.includes(key)) files = [SUITES_BY_NAME[key]];
+          if (corrected.includes(key)) files = [SUITES_BY_NAME[key]];
         }
       }
 
@@ -258,7 +284,7 @@
           "02_suites/room-blue-patio.txt"
         ];
 
-        const criteria = extractRoomCriteria(raw);
+        const criteria = extractRoomCriteria(corrected);
         const hasCriteria = Object.values(criteria).some(v => v);
 
         if (hasCriteria) {
@@ -284,7 +310,7 @@
         const bot = document.createElement("div");
         bot.className = "msg botMsg";
 
-        if (wantsToBook(raw) && BOOKING_INTRO[lang]) {
+        if (wantsToBook(corrected) && BOOKING_INTRO[lang]) {
           bot.insertAdjacentHTML(
             "beforeend",
             `<div class="kbLongParagraph">${BOOKING_INTRO[lang]}</div>`
