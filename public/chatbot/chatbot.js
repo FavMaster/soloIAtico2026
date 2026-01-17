@@ -1,6 +1,6 @@
 /****************************************************
  * SOLO'IA'TICO — CHATBOT LUXE
- * Version 1.7.13 — PLUS UNIVERSEL
+ * Version 1.7.14 — BOOKING ICON 🛎️
  ****************************************************/
 
 (function () {
@@ -20,7 +20,7 @@
     reiki: "https://koalendar.com/e/soloatico-reiki"
   };
 
-  console.log("Solo’IA’tico Chatbot v1.7.13 — PLUS ICON");
+  console.log("Solo’IA’tico Chatbot v1.7.14 — BOOKING ICON");
 
   document.addEventListener("DOMContentLoaded", async () => {
 
@@ -255,7 +255,7 @@
               : SERVICE_BOOKING[i];
           bookBtn.target = "_blank";
           bookBtn.className = "kbBookBtn";
-          bookBtn.textContent = "🏨 Réserver";
+          bookBtn.textContent = "🛎️";
           bot.appendChild(bookBtn);
         }
 
